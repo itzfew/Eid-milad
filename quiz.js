@@ -112,9 +112,11 @@ function displayResults(quizId) {
             const data = docSnap.data();
             const results = data.results || [];
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = results.map(result => `
+            const resultsListDiv = document.getElementById('results-list');
+            resultsListDiv.innerHTML = results.map(result => `
                 <p>${result.name}: ${result.score} points</p>
             `).join('');
+            resultsDiv.style.display = 'block';
         } else {
             showStatus('No results found.', 'error');
         }

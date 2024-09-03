@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAAYFrQ4la9wDoFYF6IAauti_DBouzWlGM",
@@ -27,14 +27,18 @@ function hideStatus() {
     document.getElementById('status-message').style.display = 'none';
 }
 
+function showElement(id) {
+    document.querySelectorAll('.container').forEach(el => el.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+}
+
 window.signUp = function() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     createUserWithEmailAndPassword(auth, email, password)
         .then(() => {
             hideStatus();
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('signup-form').style.display = 'block';
+            showElement('signup-form');
             showStatus('Sign up successful! Please enter your name.', 'success');
         })
         .catch((error) => {
@@ -48,10 +52,8 @@ window.signIn = function() {
     signInWithEmailAndPassword(auth, email, password)
         .then(() => {
             hideStatus();
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('quiz-setup').style.display = 'block';
-            showProfile();
-            showStatus('Sign in successful!', 'success');
+            showElement('signup-form');
+            showStatus('Sign in successful! Please enter your name.', 'success');
         })
         .catch((error) => {
             showStatus(`Sign in failed: ${error.message}`, 'error');
@@ -65,9 +67,9 @@ window.saveName = function() {
         setDoc(doc(db, 'users', user.uid), { name })
             .then(() => {
                 hideStatus();
-                document.getElementById('signup-form').style.display = 'none';
-                document.getElementById('quiz-setup').style.display = 'block';
-                showStatus('Name saved successfully!', 'success');
+                showElement('quiz-setup');
+                initializeQuestions();
+                showStatus('Name saved successfully! Please set up your quiz.', 'success');
             })
             .catch((error) => {
                 showStatus(`Failed to save name: ${error.message}`, 'error');
@@ -108,10 +110,8 @@ window.generateLink = function() {
         return { questionId, selectedOptions };
     });
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const quizId = urlParams.get('quiz');
-
     if (user && selectedQuestions.length > 0) {
+        const quizId = Date.now().toString(); // Unique ID for the quiz
         setDoc(doc(db, 'quizzes', quizId), {
             questions: selectedQuestions,
             createdBy: user.uid,
@@ -228,8 +228,7 @@ window.showProfile = function() {
 window.signOut = function() {
     firebaseSignOut(auth).then(() => {
         hideStatus();
-        document.getElementById('profile-container').style.display = 'none';
-        document.getElementById('auth-container').style.display = 'block';
+        showElement('auth-container');
         showStatus('Signed out successfully!', 'success');
     }).catch((error) => {
         showStatus(`Sign out failed: ${error.message}`, 'error');
@@ -245,14 +244,12 @@ onAuthStateChanged(auth, (user) => {
         if (quizId) {
             loadQuizQuestions(quizId);
         } else {
-            initializeQuestions();
-            document.getElementById('quiz-setup').style.display = 'block';
+            document.getElementById('signup-form').style.display = 'block';
             showProfile();
         }
     } else {
         document.getElementById('auth-container').style.display = 'block';
+        document.getElementById('signup-form').style.display = 'none';
         document.getElementById('quiz-setup').style.display = 'none';
-        document.getElementById('quiz-container').style.display = 'none';
-        document.getElementById('profile-container').style.display = 'none';
     }
 });

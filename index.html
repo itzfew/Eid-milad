@@ -4,28 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Application</title>
-    <script src="js/app.js"></script>
-      <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .status-message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
-    
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js" defer></script>
 </head>
 <body>
-    <div id="auth-container">
+    <div id="auth-container" class="container">
         <h2>Login or Sign Up</h2>
         <input type="email" id="email" placeholder="Email" required>
         <input type="password" id="password" placeholder="Password" required>
@@ -33,44 +16,34 @@
         <button onclick="signIn()">Sign In</button>
     </div>
 
-    <div id="signup-form" style="display: none;">
+    <div id="signup-form" class="container">
         <h2>Enter Your Name</h2>
         <input type="text" id="name" placeholder="Name" required>
         <button onclick="saveName()">Save Name</button>
     </div>
 
-    <div id="quiz-setup" style="display: none;">
+    <div id="quiz-setup" class="container">
         <h2>Setup Your Quiz</h2>
         <div id="question-selection">
             <h3>Select Questions and Options</h3>
-            <!-- Example of a question section, you should dynamically generate this -->
-            <div class="question-section">
-                <p>Question 1:</p>
-                <input type="checkbox" id="q1o1" name="q1" value="Option 1"> Option 1<br>
-                <input type="checkbox" id="q1o2" name="q1" value="Option 2"> Option 2<br>
-                <input type="checkbox" id="q1o3" name="q1" value="Option 3"> Option 3<br>
-                <input type="checkbox" id="q1o4" name="q1" value="Option 4"> Option 4<br>
-                <input type="checkbox" id="q1o5" name="q1" value="Option 5"> Option 5<br>
-            </div>
-            <!-- Add more questions similarly -->
+            <!-- Question sections will be added dynamically -->
         </div>
         <button onclick="generateLink()">Generate Link</button>
     </div>
 
-    <div id="quiz-container" style="display: none;">
+    <div id="quiz-container" class="container">
         <h2>Submit Quiz</h2>
         <div id="quiz-questions"></div>
         <input type="text" id="player-name" placeholder="Your Name">
         <button onclick="submitQuiz()">Submit Quiz</button>
     </div>
 
-    <div id="profile-container" style="display: none;">
+    <div id="profile-container" class="container">
         <h2>Your Profile</h2>
         <div id="profile-info"></div>
         <button onclick="signOut()">Sign Out</button>
     </div>
 
-    <!-- Status messages -->
     <div id="status-message" class="status-message" style="display: none;"></div>
 </body>
 </html>

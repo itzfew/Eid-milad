@@ -18,7 +18,7 @@ const db = getFirestore(app);
 
 function showStatus(message, type = 'success') {
     const statusMessageDiv = document.getElementById('status-message');
-    statusMessageDiv.textContent = message;
+    statusMessageDiv.innerHTML = message;
     statusMessageDiv.className = `status-message ${type}`;
     statusMessageDiv.style.display = 'block';
 }
@@ -42,7 +42,6 @@ window.signUp = function() {
             showStatus('Sign up successful! Please enter your name.', 'success');
         })
         .catch((error) => {
-            console.error('Sign up error:', error);
             showStatus(`Sign up failed: ${error.message}`, 'error');
         });
 };
@@ -57,7 +56,6 @@ window.signIn = function() {
             showStatus('Sign in successful! Please enter your name.', 'success');
         })
         .catch((error) => {
-            console.error('Sign in error:', error);
             showStatus(`Sign in failed: ${error.message}`, 'error');
         });
 };
@@ -66,7 +64,7 @@ window.saveName = function() {
     const user = auth.currentUser;
     const name = document.getElementById('name').value;
     if (user) {
-        setDoc(doc(db, 'users', user.uid), { name, quizLinks: [] }, { merge: true })
+        setDoc(doc(db, 'users', user.uid), { name })
             .then(() => {
                 hideStatus();
                 showElement('quiz-setup');
@@ -74,11 +72,8 @@ window.saveName = function() {
                 showStatus('Name saved successfully! Please set up your quiz.', 'success');
             })
             .catch((error) => {
-                console.error('Save name error:', error);
                 showStatus(`Failed to save name: ${error.message}`, 'error');
             });
-    } else {
-        showStatus('User not authenticated.', 'error');
     }
 };
 
@@ -94,12 +89,6 @@ function addQuestionSection(questionId, options) {
                 ${option}
             </label><br>
         `).join('')}
-        <label>
-            Correct Answer:
-            <select name="${questionId}-correct">
-                ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
-            </select>
-        </label><br>
     `;
     questionSelectionDiv.appendChild(questionDiv);
 }
@@ -118,8 +107,7 @@ window.generateLink = function() {
     const selectedQuestions = Array.from(document.querySelectorAll('.question-section')).map(section => {
         const questionId = section.querySelector('p').textContent;
         const selectedOptions = Array.from(section.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
-        const correctAnswer = section.querySelector(`select[name="${questionId}-correct"]`).value;
-        return { questionId, selectedOptions, correctAnswer };
+        return { questionId, selectedOptions };
     });
 
     if (user && selectedQuestions.length > 0) {
@@ -135,11 +123,9 @@ window.generateLink = function() {
                 hideStatus();
                 showStatus(`Quiz link generated: <a href="quiz.html?quiz=${quizId}" target="_blank">Share this link</a>`, 'success');
             }).catch((error) => {
-                console.error('Update user profile error:', error);
                 showStatus(`Failed to update user profile: ${error.message}`, 'error');
             });
         }).catch((error) => {
-            console.error('Create quiz error:', error);
             showStatus(`Failed to create quiz: ${error.message}`, 'error');
         });
     } else {
@@ -161,22 +147,27 @@ window.submitQuiz = function() {
         getDoc(doc(db, 'quizzes', quizId))
         .then(docSnap => {
             if (docSnap.exists()) {
-                const data = docSnap.data();
-                const questions = data.questions;
-                const score = responses.reduce((totalScore, response) => {
+                const quizData = docSnap.data();
+                const questions = quizData.questions;
+                let score = 0;
+
+                responses.forEach(response => {
                     const question = questions.find(q => q.questionId === response.questionId);
-                    const isCorrect = question && response.selectedOption.includes(question.correctAnswer);
-                    return totalScore + (isCorrect ? 4 : 0);
-                }, 0);
+                    if (question) {
+                        const correctOptions = question.selectedOptions.slice(0, 2); // Assuming first 2 options are correct
+                        const userOptions = response.selectedOption;
+                        if (correctOptions.length === userOptions.length && correctOptions.every(option => userOptions.includes(option))) {
+                            score += 4; // 4 points for correct answer
+                        }
+                    }
+                });
 
                 updateDoc(doc(db, 'quizzes', quizId), {
-                    results: arrayUnion({ name: playerName, score, responses })
+                    results: arrayUnion({ name: playerName, score, timestamp: serverTimestamp() })
                 }).then(() => {
                     hideStatus();
                     showStatus(`Quiz submitted successfully! Your score: ${score}`, 'success');
-                    displayResults(quizId);
                 }).catch((error) => {
-                    console.error('Submit quiz error:', error);
                     showStatus(`Failed to submit quiz: ${error.message}`, 'error');
                 });
             } else {
@@ -184,31 +175,12 @@ window.submitQuiz = function() {
             }
         })
         .catch((error) => {
-            console.error('Load quiz error:', error);
             showStatus(`Failed to load quiz: ${error.message}`, 'error');
         });
     } else {
         showStatus('Please enter your name and complete the quiz.', 'error');
     }
 };
-
-function displayResults(quizId) {
-    getDoc(doc(db, 'quizzes', quizId))
-    .then(docSnap => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const results = data.results || [];
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = results.map(result => `
-                <p>${result.name}: ${result.score} points</p>
-            `).join('');
-        }
-    })
-    .catch((error) => {
-        console.error('Display results error:', error);
-        showStatus(`Failed to load results: ${error.message}`, 'error');
-    });
-}
 
 function loadQuizQuestions(quizId) {
     getDoc(doc(db, 'quizzes', quizId))
@@ -234,67 +206,47 @@ function loadQuizQuestions(quizId) {
                 quizContainer.appendChild(questionDiv);
             });
 
+            // Load and display quiz results
+            const resultsContainer = document.getElementById('results');
+            getDoc(doc(db, 'quizzes', quizId))
+            .then(docSnap => {
+                if (docSnap.exists()) {
+                    const quizData = docSnap.data();
+                    const results = quizData.results || [];
+                    resultsContainer.innerHTML = '<h3>Quiz Results:</h3>';
+                    results.forEach(result => {
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'result-section';
+                        resultDiv.innerHTML = `
+                            <p><strong>Name:</strong> ${result.name}</p>
+                            <p><strong>Score:</strong> ${result.score}</p>
+                            <p><strong>Date:</strong> ${new Date(result.timestamp.seconds * 1000).toLocaleString()}</p>
+                        `;
+                        resultsContainer.appendChild(resultDiv);
+                    });
+                } else {
+                    showStatus('No results found for this quiz.', 'info');
+                }
+            }).catch((error) => {
+                showStatus(`Failed to load results: ${error.message}`, 'error');
+            });
+
             document.getElementById('quiz-container').style.display = 'block';
         } else {
             showStatus('Quiz not found.', 'error');
         }
     })
     .catch((error) => {
-        console.error('Load quiz questions error:', error);
         showStatus(`Failed to load quiz: ${error.message}`, 'error');
     });
 }
 
-window.showProfile = function() {
-    const user = auth.currentUser;
-    if (user) {
-        getDoc(doc(db, 'users', user.uid))
-        .then(docSnap => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const name = data.name;
-                const quizLinks = data.quizLinks || [];
-                document.getElementById('profile-info').innerHTML = `
-                    <p>Name: ${name}</p>
-                    <p>Quizzes:</p>
-                    <ul>${quizLinks.map(link => `<li><a href="${link}" target="_blank">${link}</a></li>`).join('')}</ul>
-                `;
-                document.getElementById('profile-container').style.display = 'block';
-            }
-        })
-        .catch((error) => {
-            console.error('Show profile error:', error);
-            showStatus(`Failed to load profile: ${error.message}`, 'error');
-        });
-    }
-};
-
-window.signOut = function() {
-    firebaseSignOut(auth).then(() => {
-        hideStatus();
-        showElement('auth-container');
-        showStatus('Signed out successfully!', 'success');
-    }).catch((error) => {
-        console.error('Sign out error:', error);
-        showStatus(`Sign out failed: ${error.message}`, 'error');
-    });
-};
-
 // On Page Load
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('auth-container').style.display = 'none';
-        const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('quiz');
-        if (quizId) {
-            loadQuizQuestions(quizId);
-        } else {
-            document.getElementById('signup-form').style.display = 'block';
-            showProfile();
-        }
-    } else {
-        document.getElementById('auth-container').style.display = 'block';
-        document.getElementById('signup-form').style.display = 'none';
-        document.getElementById('quiz-setup').style.display = 'none';
-    }
-});
+const urlParams = new URLSearchParams(window.location.search);
+const quizId = urlParams.get('quiz');
+
+if (quizId) {
+    loadQuizQuestions(quizId);
+} else {
+    showStatus('No quiz ID found in URL.', 'error');
+}

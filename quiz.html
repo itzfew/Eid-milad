@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take the Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="quiz.js" defer></script>
+</head>
+<body>
+    <div id="quiz-container" class="container" style="display: none;">
+        <h2>Quiz Questions</h2>
+        <div id="quiz-questions">
+            <!-- Quiz questions will be dynamically loaded here -->
+        </div>
+        <input type="text" id="player-name" placeholder="Enter your name" required>
+        <button onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+    <div id="status-message" class="status-message" style="display: none;"></div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -85,7 +85,12 @@ function submitQuiz() {
                 }, 0);
 
                 updateDoc(doc(db, 'quizzes', quizId), {
-                    results: arrayUnion({ name: playerName, score, responses })
+                    results: arrayUnion({
+                        name: playerName,
+                        score,
+                        timestamp: serverTimestamp(),
+                        responses
+                    })
                 }).then(() => {
                     hideStatus();
                     showStatus(`Quiz submitted successfully! Your score: ${score}`, 'success');
@@ -113,9 +118,12 @@ function displayResults(quizId) {
             const results = data.results || [];
             const resultsDiv = document.getElementById('results');
             const resultsListDiv = document.getElementById('results-list');
-            resultsListDiv.innerHTML = results.map(result => `
-                <p>${result.name}: ${result.score} points</p>
-            `).join('');
+            resultsListDiv.innerHTML = results.map(result => {
+                const timestamp = result.timestamp ? result.timestamp.toDate().toLocaleString() : 'N/A';
+                return `
+                    <p>${result.name}: ${result.score} points - ${timestamp}</p>
+                `;
+            }).join('');
             resultsDiv.style.display = 'block';
         } else {
             showStatus('No results found.', 'error');

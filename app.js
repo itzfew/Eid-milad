@@ -18,7 +18,7 @@ const db = getFirestore(app);
 
 function showStatus(message, type = 'success') {
     const statusMessageDiv = document.getElementById('status-message');
-    statusMessageDiv.innerHTML = message;
+    statusMessageDiv.textContent = message;
     statusMessageDiv.className = `status-message ${type}`;
     statusMessageDiv.style.display = 'block';
 }
@@ -77,7 +77,7 @@ window.saveName = function() {
     }
 };
 
-function addQuestionSection(questionId, options) {
+function addQuestionSection(questionId, options, correctAnswers) {
     const questionSelectionDiv = document.getElementById('question-selection');
     const questionDiv = document.createElement('div');
     questionDiv.className = 'question-section';
@@ -89,6 +89,13 @@ function addQuestionSection(questionId, options) {
                 ${option}
             </label><br>
         `).join('')}
+        <p>Correct answers:</p>
+        ${options.map(option => `
+            <label>
+                <input type="radio" name="correct-${questionId}" value="${option}">
+                ${option}
+            </label><br>
+        `).join('')}
     `;
     questionSelectionDiv.appendChild(questionDiv);
 }
@@ -96,157 +103,57 @@ function addQuestionSection(questionId, options) {
 function initializeQuestions() {
     const questions = [
         { id: 'Q1', options: ['Option 1.1', 'Option 1.2', 'Option 1.3', 'Option 1.4', 'Option 1.5'] },
-        { id: 'Q2', options: ['Option 2.1', 'Option 2.2', 'Option 2.3', 'Option 2.4', 'Option 2.5'] },
-        // Add more questions as needed
+        { id: 'Q2', options: ['Option 2.1', 'Option 2.2', 'Option 2.3', 'Option 2.4', 'Option 2.5'] }
     ];
-    questions.forEach(q => addQuestionSection(q.id, q.options));
+
+    questions.forEach(question => {
+        addQuestionSection(question.id, question.options, []);
+    });
 }
 
 window.generateLink = function() {
     const user = auth.currentUser;
-    const selectedQuestions = Array.from(document.querySelectorAll('.question-section')).map(section => {
-        const questionId = section.querySelector('p').textContent;
-        const selectedOptions = Array.from(section.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
-        return { questionId, selectedOptions };
-    });
-
-    if (user && selectedQuestions.length > 0) {
+    if (user) {
         const quizId = Date.now().toString(); // Unique ID for the quiz
-        setDoc(doc(db, 'quizzes', quizId), {
-            questions: selectedQuestions,
-            createdBy: user.uid,
-            timestamp: serverTimestamp()
-        }).then(() => {
-            updateDoc(doc(db, 'users', user.uid), {
-                quizLinks: arrayUnion(`quiz.html?quiz=${quizId}`)
-            }).then(() => {
-                hideStatus();
-                showStatus(`Quiz link generated: <a href="quiz.html?quiz=${quizId}" target="_blank">Share this link</a>`, 'success');
-            }).catch((error) => {
-                showStatus(`Failed to update user profile: ${error.message}`, 'error');
-            });
-        }).catch((error) => {
-            showStatus(`Failed to create quiz: ${error.message}`, 'error');
+        const questions = Array.from(document.querySelectorAll('.question-section')).map(section => {
+            const questionId = section.querySelector('p').textContent;
+            const options = Array.from(section.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+            const correctAnswers = Array.from(section.querySelectorAll(`input[name="correct-${questionId}"]:checked`)).map(input => input.value);
+            return { questionId, options, correctAnswers };
         });
-    } else {
-        showStatus('Please select at least one question and option.', 'error');
-    }
-};
 
-window.submitQuiz = function() {
-    const playerName = document.getElementById('player-name').value;
-    const urlParams = new URLSearchParams(window.location.search);
-    const quizId = urlParams.get('quiz');
-    const responses = Array.from(document.querySelectorAll('.question-section')).map(section => {
-        const questionId = section.querySelector('p').textContent;
-        const selectedOption = Array.from(section.querySelectorAll('input[type="radio"]:checked')).map(input => input.value);
-        return { questionId, selectedOption };
-    });
-
-    if (quizId && playerName && responses.length > 0) {
-        getDoc(doc(db, 'quizzes', quizId))
-        .then(docSnap => {
-            if (docSnap.exists()) {
-                const quizData = docSnap.data();
-                const questions = quizData.questions;
-                let score = 0;
-
-                responses.forEach(response => {
-                    const question = questions.find(q => q.questionId === response.questionId);
-                    if (question) {
-                        const correctOptions = question.selectedOptions.slice(0, 2); // Assuming first 2 options are correct
-                        const userOptions = response.selectedOption;
-                        if (correctOptions.length === userOptions.length && correctOptions.every(option => userOptions.includes(option))) {
-                            score += 4; // 4 points for correct answer
-                        }
-                    }
-                });
-
-                updateDoc(doc(db, 'quizzes', quizId), {
-                    results: arrayUnion({ name: playerName, score, timestamp: serverTimestamp() })
-                }).then(() => {
-                    hideStatus();
-                    showStatus(`Quiz submitted successfully! Your score: ${score}`, 'success');
-                }).catch((error) => {
-                    showStatus(`Failed to submit quiz: ${error.message}`, 'error');
-                });
-            } else {
-                showStatus('Quiz not found.', 'error');
-            }
+        setDoc(doc(db, 'quizzes', quizId), {
+            creatorId: user.uid,
+            createdAt: serverTimestamp(),
+            questions
+        })
+        .then(() => {
+            hideStatus();
+            showStatus(`Quiz created successfully! Share this link: <a href="quiz.html?quiz=${quizId}">quiz.html?quiz=${quizId}</a>`, 'success');
         })
         .catch((error) => {
-            showStatus(`Failed to load quiz: ${error.message}`, 'error');
+            showStatus(`Failed to create quiz: ${error.message}`, 'error');
         });
-    } else {
-        showStatus('Please enter your name and complete the quiz.', 'error');
     }
 };
 
-function loadQuizQuestions(quizId) {
-    getDoc(doc(db, 'quizzes', quizId))
-    .then(docSnap => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const questions = data.questions;
-            const quizContainer = document.getElementById('quiz-questions');
-            quizContainer.innerHTML = ''; // Clear previous content
+window.signOut = function() {
+    firebaseSignOut(auth)
+        .then(() => {
+            hideStatus();
+            showElement('auth-container');
+            showStatus('Signed out successfully.', 'success');
+        })
+        .catch((error) => {
+            showStatus(`Sign out failed: ${error.message}`, 'error');
+        });
+};
 
-            questions.forEach(q => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'question-section';
-                questionDiv.innerHTML = `
-                    <p>${q.questionId}</p>
-                    ${q.selectedOptions.map(option => `
-                        <label>
-                            <input type="radio" name="${q.questionId}" value="${option}">
-                            ${option}
-                        </label><br>
-                    `).join('')}
-                `;
-                quizContainer.appendChild(questionDiv);
-            });
-
-            // Load and display quiz results
-            const resultsContainer = document.getElementById('results');
-            getDoc(doc(db, 'quizzes', quizId))
-            .then(docSnap => {
-                if (docSnap.exists()) {
-                    const quizData = docSnap.data();
-                    const results = quizData.results || [];
-                    resultsContainer.innerHTML = '<h3>Quiz Results:</h3>';
-                    results.forEach(result => {
-                        const resultDiv = document.createElement('div');
-                        resultDiv.className = 'result-section';
-                        resultDiv.innerHTML = `
-                            <p><strong>Name:</strong> ${result.name}</p>
-                            <p><strong>Score:</strong> ${result.score}</p>
-                            <p><strong>Date:</strong> ${new Date(result.timestamp.seconds * 1000).toLocaleString()}</p>
-                        `;
-                        resultsContainer.appendChild(resultDiv);
-                    });
-                } else {
-                    showStatus('No results found for this quiz.', 'info');
-                }
-            }).catch((error) => {
-                showStatus(`Failed to load results: ${error.message}`, 'error');
-            });
-
-            document.getElementById('quiz-container').style.display = 'block';
-        } else {
-            showStatus('Quiz not found.', 'error');
-        }
-    })
-    .catch((error) => {
-        showStatus(`Failed to load quiz: ${error.message}`, 'error');
-    });
-}
-
-// On Page Load
-const urlParams = new URLSearchParams(window.location.search);
-const quizId = urlParams.get('quiz');
-
-if (quizId) {
-    loadQuizQuestions(quizId);
-} else {
-    showStatus('No quiz ID found in URL.', 'error');
-}
+// Initialize
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        showElement('signup-form');
+    } else {
+        showElement('auth-container');
+    }
+});

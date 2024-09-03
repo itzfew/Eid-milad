@@ -1,0 +1,10 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#auth-container, #quiz-container, #play-quiz-container {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

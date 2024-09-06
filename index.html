@@ -7,14 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
             text-align: center;
+            margin: 50px;
         }
         input {
             padding: 10px;
@@ -28,22 +22,20 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Enter Your Name</h1>
-        <input type="text" id="nameInput" placeholder="Your name" required>
-        <button onclick="submitName()">Submit</button>
-    </div>
+    <h1>Welcome!</h1>
+    <p>Please enter your name:</p>
+    <input type="text" id="nameInput" placeholder="Your Name">
+    <button onclick="submitName()">Submit</button>
 
     <script>
         function submitName() {
             const name = document.getElementById('nameInput').value;
-            if (name.trim()) {
-                // Save the name in localStorage and redirect to wishes.html
-                localStorage.setItem('userName', name);
-                window.location.href = 'wishes.html';
-            } else {
-                alert('Please enter your name.');
+            if (name.trim() === '') {
+                alert('Please enter your name!');
+                return;
             }
+            // Redirect to the wishes page with the name in the URL
+            window.location.href = `wishes.html?name=${encodeURIComponent(name)}`;
         }
     </script>
 </body>

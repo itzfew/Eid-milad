@@ -7,13 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
             text-align: center;
+            margin: 50px;
         }
         button {
             padding: 10px 20px;
@@ -23,26 +18,42 @@
     </style>
 </head>
 <body>
-    <h1 id="greeting"></h1>
-    <button onclick="generateShareableLink()">Share</button>
-    <p id="shareableLink"></p>
+    <h1>Wishes for You!</h1>
+    <p id="greeting"></p>
+    <button onclick="shareLink()">Share Your Name</button>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const name = localStorage.getItem('userName');
-            if (name) {
-                document.getElementById('greeting').textContent = `Hello, ${name}!`;
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        function generateShareableLink() {
-            const name = localStorage.getItem('userName');
-            const encodedName = encodeURIComponent(name);
-            const link = `${window.location.origin}/shared.html?name=${encodedName}`;
-            document.getElementById('shareableLink').innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+        // Function to get query parameter by name
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
         }
+
+        // Function to display the name
+        function displayName() {
+            const name = getQueryParam('name');
+            if (name) {
+                document.getElementById('greeting').innerText = `Hello, ${name}!`;
+            } else {
+                document.getElementById('greeting').innerText = 'Hello!';
+            }
+        }
+
+        // Function to share the link
+        function shareLink() {
+            const name = getQueryParam('name');
+            if (name) {
+                const shareUrl = `${window.location.origin}/wishes.html?name=${encodeURIComponent(name)}`;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('Link copied to clipboard!');
+                }, () => {
+                    alert('Failed to copy the link.');
+                });
+            }
+        }
+
+        // Run the function when the page loads
+        displayName();
     </script>
 </body>
 </html>

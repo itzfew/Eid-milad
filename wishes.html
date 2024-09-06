@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="greeting"></h1>
+    <button onclick="generateShareableLink()">Share</button>
+    <p id="shareableLink"></p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const name = localStorage.getItem('userName');
+            if (name) {
+                document.getElementById('greeting').textContent = `Hello, ${name}!`;
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function generateShareableLink() {
+            const name = localStorage.getItem('userName');
+            const encodedName = encodeURIComponent(name);
+            const link = `${window.location.origin}/shared.html?name=${encodedName}`;
+            document.getElementById('shareableLink').innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+        }
+    </script>
+</body>
+</html>

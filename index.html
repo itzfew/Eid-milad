@@ -4,26 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enter Your Name</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap">
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
-            background: #f0f8ff;
-            background-image: url('https://www.transparenttextures.com/patterns/white-maze.png');
-            background-size: cover;
+            background: linear-gradient(135deg, #f3f4f6, #e2e8f0);
         }
         .container {
             margin: 50px auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             background-color: #ffffff;
             max-width: 400px;
         }
         h1 {
             color: #2c3e50;
+            font-family: 'Pacifico', cursive;
         }
         input {
             padding: 10px;
@@ -42,9 +42,20 @@
             border-radius: 4px;
             background-color: #3498db;
             color: #fff;
+            transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #2980b9;
+        }
+        .email-form {
+            margin-top: 20px;
+        }
+        .email-form input {
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+        }
+        .email-form button {
+            width: 100%;
         }
     </style>
 </head>
@@ -54,6 +65,11 @@
         <p>Please enter your name:</p>
         <input type="text" id="nameInput" placeholder="Your Name" autofocus>
         <button onclick="submitName()">Submit</button>
+        <div class="email-form">
+            <p>Enter your email to receive updates:</p>
+            <input type="email" id="emailInput" placeholder="Your Email">
+            <button onclick="submitEmail()">Subscribe</button>
+        </div>
     </div>
 
     <script>
@@ -64,6 +80,16 @@
                 return;
             }
             window.location.href = `wishes.html?name=${encodeURIComponent(name)}`;
+        }
+
+        function submitEmail() {
+            const email = document.getElementById('emailInput').value.trim();
+            if (email === '') {
+                alert('Please enter your email!');
+                return;
+            }
+            alert('Thank you for subscribing! You will receive updates.');
+            // Here you would typically send the email to a server or service.
         }
     </script>
 </body>

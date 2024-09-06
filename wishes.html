@@ -13,6 +13,7 @@
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #fefcea, #f1da36);
+            overflow-x: hidden;
         }
         .container {
             margin: 50px auto;
@@ -20,7 +21,9 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             background-color: #ffffff;
-            max-width: 500px;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
         }
         h1 {
             color: #2c3e50;
@@ -65,6 +68,32 @@
         button:hover {
             background-color: #27ae60;
         }
+        .marquee {
+            font-size: 24px;
+            color: #2980b9;
+            background-color: #ecf0f1;
+            padding: 10px 0;
+            margin-bottom: 30px;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            animation: marquee 10s linear infinite;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .marquee span {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee-text 10s linear infinite;
+        }
+        @keyframes marquee {
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100%); }
+        }
+        @keyframes marquee-text {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
         .modal {
             display: none;
             position: fixed;
@@ -97,21 +126,40 @@
             text-decoration: none;
             cursor: pointer;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .eid-flags {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .eid-flags img {
+            width: 50px;
+            height: auto;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1><i class="fa fa-gift"></i> Eid Milad un Nabi Wishes!</h1>
+        <div class="marquee">
+            <span>Eid Milad un Nabi Mubarak to all! May this special day bring peace, joy, and prosperity to your life.</span>
+        </div>
         <p id="greeting"></p>
         <div class="countdown" id="countdown">
             <span id="days">0d</span>
             <span id="hours">0h</span>
             <span id="minutes">0m</span>
             <span id="seconds">0s</span>
+        </div>
+        <div class="eid-flags">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Flag_of_Saudi_Arabia.svg/1200px-Flag_of_Saudi_Arabia.svg.png" alt="Saudi Flag">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Flag_of_the_Pakistan.svg/1920px-Flag_of_the_Pakistan.svg.png" alt="Pakistan Flag">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flag_of_Turkey.svg/1200px-Flag_of_Turkey.svg.png" alt="Turkey Flag">
         </div>
         <button onclick="shareLink()"><i class="fa fa-share-alt"></i> Share Your Wish</button>
         <button onclick="openModal()"><i class="fa fa-info-circle"></i> Learn More</button>
@@ -162,7 +210,7 @@
         function shareLink() {
             const name = getQueryParam('name');
             if (name) {
-                const message = `${name} wishes you a Happy Eid Milad un Nabi Mubarak! Check it out here: [Your Link Here]`;
+                const message = `${name} wishes you a Happy Eid Milad un Nabi Mubarak! Check it out here: https://example.com`;
                 const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                 window.open(shareUrl, '_blank');
             }

@@ -212,7 +212,7 @@
             if (name) {
                 const message = `${name} wishes you a Happy Eid Milad un Nabi Mubarak! Check it out here: https://example.com`;
                 const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(shareUrl, '_blank');
+                window.location.href = shareUrl;
             }
         }
 

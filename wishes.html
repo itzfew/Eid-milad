@@ -1,58 +1,106 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wishes</title>
+    <title>Eid Milad un Nabi Wishes</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 50px;
+            margin: 0;
+            padding: 0;
+            background: #f0f8ff;
+            background-image: url('https://www.transparenttextures.com/patterns/white-maze.png');
+            background-size: cover;
+        }
+        .container {
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            max-width: 400px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+        .countdown {
+            font-size: 24px;
+            color: #e74c3c;
+            margin: 20px 0;
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #2ecc71;
+            color: #fff;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #27ae60;
         }
     </style>
 </head>
 <body>
-    <h1>Wishes for You!</h1>
-    <p id="greeting"></p>
-    <button onclick="shareLink()">Share Your Name</button>
+    <div class="container">
+        <h1>Eid Milad un Nabi Wishes!</h1>
+        <p id="greeting"></p>
+        <div class="countdown" id="countdown"></div>
+        <button onclick="shareLink()">Share Your Wish</button>
+    </div>
 
     <script>
-        // Function to get query parameter by name
         function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Function to display the name
         function displayName() {
             const name = getQueryParam('name');
+            const greetingElement = document.getElementById('greeting');
             if (name) {
-                document.getElementById('greeting').innerText = `Hello, ${name}!`;
+                greetingElement.innerText = `${name} wishes you a Happy Eid Milad un Nabi Mubarak!`;
             } else {
-                document.getElementById('greeting').innerText = 'Hello!';
+                greetingElement.innerText = 'Happy Eid Milad un Nabi Mubarak!';
             }
         }
 
-        // Function to share the link
+        function updateCountdown() {
+            const eidDate = new Date('2024-09-17T00:00:00Z'); // Date for Eid Milad un Nabi 2024
+            const now = new Date();
+            const timeDiff = eidDate - now;
+            if (timeDiff <= 0) {
+                document.getElementById('countdown').innerText = 'Eid Milad un Nabi is here!';
+                return;
+            }
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            document.getElementById('countdown').innerText = `Countdown to Eid Milad un Nabi: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
         function shareLink() {
             const name = getQueryParam('name');
             if (name) {
-                const shareUrl = `${window.location.origin}/wishes.html?name=${encodeURIComponent(name)}`;
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    alert('Link copied to clipboard!');
-                }, () => {
-                    alert('Failed to copy the link.');
-                });
+                const message = `${name} wishes you a Happy Eid Milad un Nabi Mubarak!`;
+                const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(shareUrl, '_blank');
             }
         }
 
-        // Run the function when the page loads
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+
+        // Run the functions when the page loads
         displayName();
     </script>
 </body>

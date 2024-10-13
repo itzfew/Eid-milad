@@ -4,42 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Correct Answers</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h3>Correct Answers</h3>
-        <div id="answerContainer" class="question-container"></div>
+        <h3 id="testNameHeader"></h3>
+        <div id="correctAnswersContainer"></div>
         <button id="submitBtn" class="button submit-btn">Submit</button>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const numQuestions = parseInt(localStorage.getItem('numQuestions'));
-            const answerContainer = document.getElementById('answerContainer');
+        const urlParams = new URLSearchParams(window.location.search);
+        const testName = urlParams.get('testName');
+        const selectedOptions = JSON.parse(decodeURIComponent(urlParams.get('options')));
 
-            function populateAnswers() {
-                for (let i = 1; i <= numQuestions; i++) {
-                    const answerDiv = document.createElement('div');
-                    answerDiv.classList.add('question');
-                    answerDiv.innerHTML = `<div class="question-number">Q${i}</div>
-                                            <input type="text" class="correct-answer" placeholder="Enter correct answer (A, B, C, or D)">`;
-                    answerContainer.appendChild(answerDiv);
-                }
-            }
+        document.getElementById("testNameHeader").textContent = `Confirm answers for ${testName}`;
+        const correctAnswersContainer = document.getElementById("correctAnswersContainer");
 
-            document.getElementById('submitBtn').addEventListener('click', function() {
-                const selectedOptions = Array.from(document.querySelectorAll('.option-circle.selected'))
-                    .map(circle => circle.getAttribute('data-option'));
-                const correctAnswers = Array.from(document.querySelectorAll('.correct-answer'))
-                    .map(input => input.value.trim().toUpperCase());
+        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
 
-                localStorage.setItem('selectedOptions', JSON.stringify(selectedOptions));
-                localStorage.setItem('correctAnswers', JSON.stringify(correctAnswers));
+        selectedOptions.forEach((selected, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question");
+            questionDiv.innerHTML = `<strong>Q${index + 1}:</strong> You chose ${selected}. Correct answer is ${correctAnswers[index]}.`;
+            correctAnswersContainer.appendChild(questionDiv);
+        });
 
-                window.location.href = 'results.html';
-            });
-
-            populateAnswers();
+        document.getElementById("submitBtn").addEventListener("click", function() {
+            // Redirect to results.html after submission
+            window.location.href = `results.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}`;
         });
     </script>
 </body>

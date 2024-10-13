@@ -5,56 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Correct Answers</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .question {
-            margin: 15px 0;
-        }
-        .options-container {
-            display: flex;
-            gap: 10px;
-        }
-        .option-circle {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            border: 2px solid #007BFF;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .selected {
-            background: #007BFF;
-            color: white;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -67,42 +17,54 @@
         const testName = urlParams.get('testName');
         const selectedOptions = JSON.parse(decodeURIComponent(urlParams.get('options')));
         const numQuestions = parseInt(urlParams.get('numQuestions'));
-        const correctAnswers = JSON.parse(decodeURIComponent(urlParams.get('correctAnswers')));
 
         document.getElementById("testNameHeader").textContent = `Confirm answers for ${testName}`;
         const correctAnswersContainer = document.getElementById("correctAnswersContainer");
+
+        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
+        let userAnswers = [];
 
         for (let i = 0; i < numQuestions; i++) {
             const questionDiv = document.createElement("div");
             questionDiv.classList.add("question");
             questionDiv.innerHTML = `<strong>Q${i + 1}:</strong>
                 <div class="options-container">
-                    <div class="option-circle ${selectedOptions[i] === 'A' ? 'selected' : ''}" data-question="${i + 1}" data-option="A">A</div>
-                    <div class="option-circle ${selectedOptions[i] === 'B' ? 'selected' : ''}" data-question="${i + 1}" data-option="B">B</div>
-                    <div class="option-circle ${selectedOptions[i] === 'C' ? 'selected' : ''}" data-question="${i + 1}" data-option="C">C</div>
-                    <div class="option-circle ${selectedOptions[i] === 'D' ? 'selected' : ''}" data-question="${i + 1}" data-option="D">D</div>
+                    <div class="option-circle" data-question="${i + 1}" data-option="A">A</div>
+                    <div class="option-circle" data-question="${i + 1}" data-option="B">B</div>
+                    <div class="option-circle" data-question="${i + 1}" data-option="C">C</div>
+                    <div class="option-circle" data-question="${i + 1}" data-option="D">D</div>
                 </div>
-                <p>Your selected option: ${selectedOptions[i]}</p>
-                <p>Correct option: ${correctAnswers[i]}</p>`;
+                <p>Your previously selected option: ${selectedOptions[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
+
+            // Reset options initially
+            document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
+                circle.addEventListener("click", function() {
+                    const selectedQuestion = this.getAttribute('data-question');
+                    document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    userAnswers[selectedQuestion - 1] = this.getAttribute('data-option'); // Store user answer
+                });
+            });
         }
 
         document.getElementById("submitBtn").addEventListener("click", function() {
+            // Compare user answers with correct answers
             let score = 0;
             let results = [];
 
-            selectedOptions.forEach((answer, index) => {
-                const correctOption = correctAnswers[index];
-                const isCorrect = answer === correctOption;
-                results.push({ question: index + 1, correct: isCorrect, selected: answer, correctOption });
-                if (isCorrect) score++;
+            userAnswers.forEach((answer, index) => {
+                if (answer === correctAnswers[index]) {
+                    results.push({ question: index + 1, correct: true });
+                    score += 4; // +4 for correct answer
+                } else {
+                    results.push({ question: index + 1, correct: false });
+                    score -= 1; // -1 for incorrect answer
+                }
             });
 
-            // Clear local storage to reset the quiz
-            localStorage.removeItem('quizAnswers');
-
-            // Redirect to result.html with results
-            window.location.href = `result.html?testName=${encodeURIComponent(testName)}&score=${score}&numQuestions=${numQuestions}&results=${encodeURIComponent(JSON.stringify(results))}`;
+            // Redirect to results.html with score and results
+            window.location.href = `results.html?testName=${encodeURIComponent(testName)}&score=${score}&numQuestions=${numQuestions}&results=${encodeURIComponent(JSON.stringify(results))}`;
         });
     </script>
 </body>

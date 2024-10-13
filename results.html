@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App - Results</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h3>Results</h3>
+        <div id="results"></div>
+        <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const resultsDiv = document.getElementById('results');
+            const selectedOptions = JSON.parse(localStorage.getItem('selectedOptions'));
+            const correctAnswers = JSON.parse(localStorage.getItem('correctAnswers'));
+            const testName = localStorage.getItem('testName');
+
+            let score = 0;
+            selectedOptions.forEach((selected, index) => {
+                const isCorrect = selected === correctAnswers[index];
+                if (isCorrect) score += 4;
+
+                const resultText = document.createElement('div');
+                resultText.classList.add('result');
+                resultText.textContent = `Q${index + 1}: You chose ${selected}. Correct answer: ${correctAnswers[index]} - ${isCorrect ? 'Correct!' : 'Incorrect!'}`;
+                resultsDiv.appendChild(resultText);
+            });
+
+            const totalScore = document.createElement('h4');
+            totalScore.textContent = `Total Score: ${score} / ${correctAnswers.length * 4}`;
+            resultsDiv.appendChild(totalScore);
+
+            document.getElementById('newExamBtn').addEventListener('click', function() {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

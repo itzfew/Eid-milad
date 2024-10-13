@@ -5,91 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Results</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Include Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h3 id="testNameHeader"></h3>
+        <h3 id="testNameHeader">Results</h3>
         <div id="resultsContainer"></div>
+        <canvas id="resultsChart"></canvas>
         <p id="finalScore"></p>
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
-            authDomain: "quizes-3028d.firebaseapp.com",
-            projectId: "quizes-3028d",
-            storageBucket: "quizes-3028d.appspot.com",
-            messagingSenderId: "624591251031",
-            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
-            measurementId: "G-QMZK5Y6769"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const questions = [
+            { question: "What is 2 + 2?", options: ["3", "4", "5"], answer: 1 },
+            { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris"], answer: 2 },
+            // Add more questions here...
+        ];
 
         const urlParams = new URLSearchParams(window.location.search);
-        const testName = urlParams.get('testName');
-        const score = parseInt(urlParams.get('score'));
-        const numQuestions = parseInt(urlParams.get('numQuestions'));
         const results = JSON.parse(decodeURIComponent(urlParams.get('results')));
-
-        document.getElementById("testNameHeader").textContent = `Results for ${testName}`;
+        
         const resultsContainer = document.getElementById("resultsContainer");
-
         let correctCount = 0;
         let incorrectCount = 0;
-        let correctQuestions = [];
-        let incorrectQuestions = [];
+        let missedCount = 0;
 
-        results.forEach(({ question, correct }) => {
+        questions.forEach((q, index) => {
+            const userAnswer = results[index];
+            const correctAnswer = q.answer;
+
             const resultDiv = document.createElement("div");
             resultDiv.classList.add("result");
-            resultDiv.textContent = `Q${question}: ${correct ? "Correct!" : "Incorrect!"}`;
-            resultDiv.classList.add(correct ? 'correct' : 'incorrect');
+            const isCorrect = userAnswer == correctAnswer;
 
-            if (correct) {
-                correctCount++;
-                correctQuestions.push(question);
+            if (userAnswer === undefined) {
+                missedCount++;
+                resultDiv.innerHTML = `Q${index + 1}: Missed! Correct answer: ${q.options[correctAnswer]}`;
             } else {
-                incorrectCount++;
-                incorrectQuestions.push(question);
+                if (isCorrect) {
+                    correctCount++;
+                    resultDiv.innerHTML = `Q${index + 1}: Correct! Your answer: ${q.options[userAnswer]}`;
+                } else {
+                    incorrectCount++;
+                    resultDiv.innerHTML = `Q${index + 1}: Incorrect! Your answer: ${q.options[userAnswer]}, Correct answer: ${q.options[correctAnswer]}`;
+                }
             }
 
             resultsContainer.appendChild(resultDiv);
         });
 
-        const missedCount = numQuestions - (correctCount + incorrectCount);
-        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`;
+        const score = correctCount * 4 - incorrectCount;
+        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${questions.length * 4}`;
 
-        // Save results to Firebase
-        const saveResults = () => {
-            const resultData = {
-                testName: testName,
-                date: new Date().toISOString(),
-                correct: correctQuestions.join(","),
-                incorrect: incorrectQuestions.join(","),
-                missed: missedCount,
-                score: score
-            };
-
-            database.ref('quizResults').push(resultData)
-                .then(() => {
-                    console.log('Results saved successfully.');
-                })
-                .catch((error) => {
-                    console.error('Error saving results: ', error);
-                });
-        };
-
-        saveResults();
+        // Chart
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Correct', 'Incorrect', 'Missed'],
+                datasets: [{
+                    label: 'Results',
+                    data: [correctCount, incorrectCount, missedCount],
+                    backgroundColor: ['green', 'red', 'orange'],
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
-            window.location.href = "index.html";
+            localStorage.removeItem('quizAnswers'); // Clear saved answers
+            window.location.href = "choose.html";
         });
     </script>
 </body>

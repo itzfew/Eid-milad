@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Correct Answers</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .selected {
+            background-color: #007BFF;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -22,7 +28,7 @@
         const correctAnswersContainer = document.getElementById("correctAnswersContainer");
 
         const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
-        let userAnswers = [];
+        let userAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || new Array(numQuestions).fill(null);
 
         for (let i = 0; i < numQuestions; i++) {
             const questionDiv = document.createElement("div");
@@ -37,13 +43,22 @@
                 <p>Your previously selected option: ${selectedOptions[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
 
-            // Reset options initially
+            // Highlight previously selected option
+            if (userAnswers[i] !== null) {
+                const previouslySelectedCircle = questionDiv.querySelector(`.option-circle[data-option='${userAnswers[i]}']`);
+                if (previouslySelectedCircle) {
+                    previouslySelectedCircle.classList.add('selected');
+                }
+            }
+
+            // Add event listeners for option selection
             document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
                 circle.addEventListener("click", function() {
                     const selectedQuestion = this.getAttribute('data-question');
                     document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
                     this.classList.add('selected');
                     userAnswers[selectedQuestion - 1] = this.getAttribute('data-option'); // Store user answer
+                    localStorage.setItem('quizAnswers', JSON.stringify(userAnswers)); // Save to localStorage
                 });
             });
         }
@@ -55,10 +70,10 @@
 
             userAnswers.forEach((answer, index) => {
                 if (answer === correctAnswers[index]) {
-                    results.push({ question: index + 1, correct: true });
+                    results.push({ question: index + 1, correct: true, selected: answer, correctOption: correctAnswers[index] });
                     score += 4; // +4 for correct answer
                 } else {
-                    results.push({ question: index + 1, correct: false });
+                    results.push({ question: index + 1, correct: false, selected: answer, correctOption: correctAnswers[index] });
                     score -= 1; // -1 for incorrect answer
                 }
             });

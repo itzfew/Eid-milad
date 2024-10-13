@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App - Confirm Answers</title>
+    <title>Quiz App - Correct Answers</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
@@ -38,10 +38,6 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        .option-circle.selected {
-            background: #007BFF;
-            color: white;
-        }
         button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -72,7 +68,7 @@
         const correctAnswersContainer = document.getElementById("correctAnswersContainer");
 
         const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
-        let userAnswers = new Array(numQuestions).fill(null);
+        let userAnswers = [];
 
         for (let i = 0; i < numQuestions; i++) {
             const questionDiv = document.createElement("div");
@@ -87,12 +83,10 @@
                 <p>Your previously selected option: ${selectedOptions[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
 
-            // Preselect the previously selected option
-            const preselectedCircle = document.querySelector(`.option-circle[data-question='${i + 1}'][data-option='${selectedOptions[i]}']`);
-            if (preselectedCircle) {
-                preselectedCircle.classList.add('selected');
-                userAnswers[i] = selectedOptions[i]; // Store initial answer
-            }
+            // Highlight the correct answer
+            const correctOption = correctAnswers[i];
+            const correctCircle = questionDiv.querySelector(`.option-circle[data-option='${correctOption}']`);
+            correctCircle.style.borderColor = 'green';
 
             // Reset options initially
             document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
@@ -111,19 +105,18 @@
             let results = [];
 
             userAnswers.forEach((answer, index) => {
-                if (answer === correctAnswers[index]) {
-                    results.push({ question: index + 1, correct: true });
-                    score += 4; // +4 for correct answer
-                } else {
-                    results.push({ question: index + 1, correct: false });
-                    score -= 1; // -1 for incorrect answer
-                }
+                const correctOption = correctAnswers[index];
+                const isCorrect = answer === correctOption;
+                results.push({
+                    question: index + 1,
+                    correct: isCorrect,
+                    selected: answer,
+                    correctOption: correctOption
+                });
+                if (isCorrect) score++;
             });
 
-            // Clear localStorage to reset answers for a new test
-            localStorage.removeItem('quizAnswers');
-
-            // Redirect to result.html with score and results
+            // Redirect to result.html with results
             window.location.href = `result.html?testName=${encodeURIComponent(testName)}&score=${score}&numQuestions=${numQuestions}&results=${encodeURIComponent(JSON.stringify(results))}`;
         });
     </script>

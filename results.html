@@ -5,60 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Results</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        canvas {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h3 id="testNameHeader">Results</h3>
+        <h3 id="testNameHeader"></h3>
         <div id="resultsContainer"></div>
-        <canvas id="resultsChart"></canvas>
         <p id="finalScore"></p>
+        <canvas id="scoreChart"></canvas>
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
-        const questions = [
-            { question: "What is 2 + 2?", options: ["3", "4", "5"], answer: 1 },
-            { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris"], answer: 2 },
-            // Add more questions here...
-        ];
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         const urlParams = new URLSearchParams(window.location.search);
+        const testName = urlParams.get('testName');
+        const score = parseInt(urlParams.get('score'));
+        const numQuestions = parseInt(urlParams.get('numQuestions'));
         const results = JSON.parse(decodeURIComponent(urlParams.get('results')));
-        
+
+        document.getElementById("testNameHeader").textContent = `Results for ${testName}`;
         const resultsContainer = document.getElementById("resultsContainer");
+
         let correctCount = 0;
         let incorrectCount = 0;
-        let missedCount = 0;
 
-        questions.forEach((q, index) => {
-            const userAnswer = results[index];
-            const correctAnswer = q.answer;
-
+        results.forEach(({ question, correct, selected, correctOption }) => {
             const resultDiv = document.createElement("div");
             resultDiv.classList.add("result");
-            const isCorrect = userAnswer == correctAnswer;
+            resultDiv.textContent = `Q${question}: Selected ${selected}, Correct ${correctOption}`;
+            resultDiv.classList.add(correct ? 'correct' : 'incorrect');
 
-            if (userAnswer === undefined) {
-                missedCount++;
-                resultDiv.innerHTML = `Q${index + 1}: Missed! Correct answer: ${q.options[correctAnswer]}`;
+            if (correct) {
+                correctCount++;
             } else {
-                if (isCorrect) {
-                    correctCount++;
-                    resultDiv.innerHTML = `Q${index + 1}: Correct! Your answer: ${q.options[userAnswer]}`;
-                } else {
-                    incorrectCount++;
-                    resultDiv.innerHTML = `Q${index + 1}: Incorrect! Your answer: ${q.options[userAnswer]}, Correct answer: ${q.options[correctAnswer]}`;
-                }
+                incorrectCount++;
             }
 
             resultsContainer.appendChild(resultDiv);
         });
 
-        const score = correctCount * 4 - incorrectCount;
-        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${questions.length * 4}`;
+        const missedCount = numQuestions - (correctCount + incorrectCount);
+        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`;
 
-        // Chart
-        const ctx = document.getElementById('resultsChart').getContext('2d');
+        // Save results to Firebase
+        const saveResults = () => {
+            const resultData = {
+                testName: testName,
+                date: new Date().toISOString(),
+                correct: correctCount,
+                incorrect: incorrectCount,
+                missed: missedCount,
+                score: score,
+                questionNumbers: results.map(r => r.question).join(',')
+            };
+
+            database.ref('quizResults').push(resultData)
+                .then(() => {
+                    console.log('Results saved successfully.');
+                })
+                .catch((error) => {
+                    console.error('Error saving results: ', error);
+                });
+        };
+
+        saveResults();
+
+        // Prepare data for chart
+        const ctx = document.getElementById('scoreChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -66,7 +139,7 @@
                 datasets: [{
                     label: 'Results',
                     data: [correctCount, incorrectCount, missedCount],
-                    backgroundColor: ['green', 'red', 'orange'],
+                    backgroundColor: ['#4caf50', '#f44336', '#ffc107']
                 }]
             },
             options: {
@@ -80,7 +153,7 @@
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
             localStorage.removeItem('quizAnswers'); // Clear saved answers
-            window.location.href = "choose.html";
+            window.location.href = "index.html";
         });
     </script>
 </body>

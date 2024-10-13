@@ -43,6 +43,8 @@
 
         let correctCount = 0;
         let incorrectCount = 0;
+        let correctQuestions = [];
+        let incorrectQuestions = [];
 
         results.forEach(({ question, correct }) => {
             const resultDiv = document.createElement("div");
@@ -52,8 +54,10 @@
 
             if (correct) {
                 correctCount++;
+                correctQuestions.push(question);
             } else {
                 incorrectCount++;
+                incorrectQuestions.push(question);
             }
 
             resultsContainer.appendChild(resultDiv);
@@ -67,8 +71,8 @@
             const resultData = {
                 testName: testName,
                 date: new Date().toISOString(),
-                correct: correctCount,
-                incorrect: incorrectCount,
+                correct: correctQuestions.join(","),
+                incorrect: incorrectQuestions.join(","),
                 missed: missedCount,
                 score: score
             };

@@ -83,11 +83,6 @@
                 <p>Your previously selected option: ${selectedOptions[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
 
-            // Highlight the correct answer
-            const correctOption = correctAnswers[i];
-            const correctCircle = questionDiv.querySelector(`.option-circle[data-option='${correctOption}']`);
-            correctCircle.style.borderColor = 'green';
-
             // Reset options initially
             document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
                 circle.addEventListener("click", function() {

@@ -4,40 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Results</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h3>Results</h3>
-        <div id="results"></div>
+        <h3 id="testNameHeader"></h3>
+        <div id="resultsContainer"></div>
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const resultsDiv = document.getElementById('results');
-            const selectedOptions = JSON.parse(localStorage.getItem('selectedOptions'));
-            const correctAnswers = JSON.parse(localStorage.getItem('correctAnswers'));
-            const testName = localStorage.getItem('testName');
+        const urlParams = new URLSearchParams(window.location.search);
+        const testName = urlParams.get('testName');
+        const selectedOptions = JSON.parse(decodeURIComponent(urlParams.get('options')));
 
-            let score = 0;
-            selectedOptions.forEach((selected, index) => {
-                const isCorrect = selected === correctAnswers[index];
-                if (isCorrect) score += 4;
+        document.getElementById("testNameHeader").textContent = `Results for ${testName}`;
+        const resultsContainer = document.getElementById("resultsContainer");
 
-                const resultText = document.createElement('div');
-                resultText.classList.add('result');
-                resultText.textContent = `Q${index + 1}: You chose ${selected}. Correct answer: ${correctAnswers[index]} - ${isCorrect ? 'Correct!' : 'Incorrect!'}`;
-                resultsDiv.appendChild(resultText);
-            });
+        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
+        let score = 0;
 
-            const totalScore = document.createElement('h4');
-            totalScore.textContent = `Total Score: ${score} / ${correctAnswers.length * 4}`;
-            resultsDiv.appendChild(totalScore);
+        selectedOptions.forEach((selected, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("result");
+            if (selected === correctAnswers[index]) {
+                questionDiv.textContent = `Q${index + 1}: Correct! You chose ${selected}.`;
+                score += 1; // Increment score for correct answer
+                questionDiv.classList.add('correct');
+            } else {
+                questionDiv.textContent = `Q${index + 1}: Incorrect! You chose ${selected}. Correct answer is ${correctAnswers[index]}.`;
+                questionDiv.classList.add('incorrect');
+            }
+            resultsContainer.appendChild(questionDiv);
+        });
 
-            document.getElementById('newExamBtn').addEventListener('click', function() {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            });
+        resultsContainer.insertAdjacentHTML('beforeend', `<p>Score: ${score} / ${selectedOptions.length}</p>`);
+
+        document.getElementById("newExamBtn").addEventListener("click", function() {
+            window.location.href = "index.html";
         });
     </script>
 </body>

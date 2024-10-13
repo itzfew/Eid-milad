@@ -6,6 +6,7 @@
     <title>Quiz App - Choose Options</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Add basic styles for this example */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -87,15 +88,13 @@
         }
 
         // Restore selected options if available
-        for (let i = 1; i <= numQuestions; i++) {
-            const selectedOption = savedAnswers[i] || null;
-            if (selectedOption) {
-                const circle = document.querySelector(`.option-circle[data-question='${i}'][data-option='${selectedOption}']`);
-                if (circle) {
-                    circle.classList.add('selected');
-                }
+        Object.keys(savedAnswers).forEach(question => {
+            const selectedOption = savedAnswers[question];
+            const circle = document.querySelector(`.option-circle[data-question='${parseInt(question) + 1}'][data-option='${selectedOption}']`);
+            if (circle) {
+                circle.classList.add('selected');
             }
-        }
+        });
 
         document.querySelectorAll(".option-circle").forEach(circle => {
             circle.addEventListener("click", function() {
@@ -103,7 +102,7 @@
                 document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 // Save the selected option to localStorage
-                savedAnswers[selectedQuestion] = this.getAttribute('data-option');
+                savedAnswers[selectedQuestion - 1] = this.getAttribute('data-option');
                 localStorage.setItem('quizAnswers', JSON.stringify(savedAnswers));
             });
         });

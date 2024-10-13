@@ -15,29 +15,22 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const testName = urlParams.get('testName');
-        const selectedOptions = JSON.parse(decodeURIComponent(urlParams.get('options')));
+        const score = parseInt(urlParams.get('score'));
+        const numQuestions = parseInt(urlParams.get('numQuestions'));
+        const results = JSON.parse(decodeURIComponent(urlParams.get('results')));
 
         document.getElementById("testNameHeader").textContent = `Results for ${testName}`;
         const resultsContainer = document.getElementById("resultsContainer");
 
-        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
-        let score = 0;
-
-        selectedOptions.forEach((selected, index) => {
-            const questionDiv = document.createElement("div");
-            questionDiv.classList.add("result");
-            if (selected === correctAnswers[index]) {
-                questionDiv.textContent = `Q${index + 1}: Correct! You chose ${selected}.`;
-                score += 1; // Increment score for correct answer
-                questionDiv.classList.add('correct');
-            } else {
-                questionDiv.textContent = `Q${index + 1}: Incorrect! You chose ${selected}. Correct answer is ${correctAnswers[index]}.`;
-                questionDiv.classList.add('incorrect');
-            }
-            resultsContainer.appendChild(questionDiv);
+        results.forEach(({ question, correct }) => {
+            const resultDiv = document.createElement("div");
+            resultDiv.classList.add("result");
+            resultDiv.textContent = `Q${question}: ${correct ? "Correct!" : "Incorrect!"}`;
+            resultDiv.classList.add(correct ? 'correct' : 'incorrect');
+            resultsContainer.appendChild(resultDiv);
         });
 
-        resultsContainer.insertAdjacentHTML('beforeend', `<p>Score: ${score} / ${selectedOptions.length}</p>`);
+        resultsContainer.insertAdjacentHTML('beforeend', `<p>Score: ${score} / ${numQuestions}</p>`);
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
             window.location.href = "index.html";

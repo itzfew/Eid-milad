@@ -10,6 +10,7 @@
     <div class="container">
         <h3 id="testNameHeader"></h3>
         <div id="resultsContainer"></div>
+        <p id="finalScore"></p>
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
@@ -30,7 +31,7 @@
             resultsContainer.appendChild(resultDiv);
         });
 
-        resultsContainer.insertAdjacentHTML('beforeend', `<p>Score: ${score} / ${numQuestions}</p>`);
+        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`; // Max score if all correct
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
             window.location.href = "index.html";

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Start</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -16,16 +16,15 @@
         <button id="startBtn" class="button start-btn">Start Quiz</button>
     </div>
     <script>
-        document.getElementById('startBtn').addEventListener('click', function() {
-            const testName = document.getElementById('testName').value.trim();
-            const numQuestions = parseInt(document.getElementById('numQuestions').value);
+        document.getElementById("startBtn").addEventListener("click", function() {
+            const testName = document.getElementById("testName").value.trim();
+            const numQuestions = parseInt(document.getElementById("numQuestions").value);
             if (testName === "" || numQuestions <= 0) {
                 alert("Please enter a valid test name and number of questions.");
                 return;
             }
-            localStorage.setItem('testName', testName);
-            localStorage.setItem('numQuestions', numQuestions);
-            window.location.href = 'choose.html';
+            // Redirect to choose.html with parameters
+            window.location.href = `choose.html?testName=${encodeURIComponent(testName)}&numQuestions=${numQuestions}`;
         });
     </script>
 </body>

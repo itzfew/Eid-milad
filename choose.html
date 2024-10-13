@@ -47,7 +47,7 @@
                 selectedOptions[circle.getAttribute('data-question') - 1] = circle.getAttribute('data-option');
             });
             // Redirect to correct.html with selected options
-            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}`;
+            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}&numQuestions=${numQuestions}`;
         });
     </script>
 </body>

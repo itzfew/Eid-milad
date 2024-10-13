@@ -4,52 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Choose Options</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h3>Choose Options</h3>
-        <div id="questionContainer" class="question-container"></div>
+        <h3 id="testNameHeader"></h3>
+        <div id="questionContainer"></div>
         <button id="nextBtn" class="button next-btn">Next</button>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const numQuestions = parseInt(localStorage.getItem('numQuestions'));
-            const questionContainer = document.getElementById('questionContainer');
-            const nextBtn = document.getElementById('nextBtn');
+        const urlParams = new URLSearchParams(window.location.search);
+        const testName = urlParams.get('testName');
+        const numQuestions = parseInt(urlParams.get('numQuestions'));
 
-            function populateQuestions() {
-                for (let i = 1; i <= numQuestions; i++) {
-                    const questionDiv = document.createElement('div');
-                    questionDiv.classList.add('question');
-                    questionDiv.innerHTML = `<div class="question-number">Q${i}</div>
-                                            <div class="options-container">
-                                                <div class="option-circle" data-question="${i}" data-option="A">A</div>
-                                                <div class="option-circle" data-question="${i}" data-option="B">B</div>
-                                                <div class="option-circle" data-question="${i}" data-option="C">C</div>
-                                                <div class="option-circle" data-question="${i}" data-option="D">D</div>
-                                            </div>`;
-                    questionContainer.appendChild(questionDiv);
-                }
+        document.getElementById("testNameHeader").textContent = `Choose options for ${testName}`;
+        const questionContainer = document.getElementById("questionContainer");
 
-                const optionCircles = questionContainer.querySelectorAll('.option-circle');
-                optionCircles.forEach(circle => {
-                    circle.addEventListener('click', function() {
-                        optionCircles.forEach(c => {
-                            if (c.getAttribute('data-question') === circle.getAttribute('data-question')) {
-                                c.classList.remove('selected');
-                            }
-                        });
-                        circle.classList.add('selected');
-                    });
-                });
-            }
+        for (let i = 1; i <= numQuestions; i++) {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question");
+            questionDiv.innerHTML = `<strong>Q${i}:</strong>
+                <div class="options-container">
+                    <div class="option-circle" data-question="${i}" data-option="A">A</div>
+                    <div class="option-circle" data-question="${i}" data-option="B">B</div>
+                    <div class="option-circle" data-question="${i}" data-option="C">C</div>
+                    <div class="option-circle" data-question="${i}" data-option="D">D</div>
+                </div>`;
+            questionContainer.appendChild(questionDiv);
+        }
 
-            nextBtn.addEventListener('click', function() {
-                window.location.href = 'correct.html';
+        document.querySelectorAll(".option-circle").forEach(circle => {
+            circle.addEventListener("click", function() {
+                const selectedQuestion = this.getAttribute('data-question');
+                document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
             });
+        });
 
-            populateQuestions();
+        document.getElementById("nextBtn").addEventListener("click", function() {
+            const selectedOptions = [];
+            document.querySelectorAll(".option-circle.selected").forEach(circle => {
+                selectedOptions[circle.getAttribute('data-question') - 1] = circle.getAttribute('data-option');
+            });
+            // Redirect to correct.html with selected options
+            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}`;
         });
     </script>
 </body>

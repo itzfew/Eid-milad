@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App - Correct Answers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h3>Correct Answers</h3>
+        <div id="answerContainer" class="question-container"></div>
+        <button id="submitBtn" class="button submit-btn">Submit</button>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const numQuestions = parseInt(localStorage.getItem('numQuestions'));
+            const answerContainer = document.getElementById('answerContainer');
+
+            function populateAnswers() {
+                for (let i = 1; i <= numQuestions; i++) {
+                    const answerDiv = document.createElement('div');
+                    answerDiv.classList.add('question');
+                    answerDiv.innerHTML = `<div class="question-number">Q${i}</div>
+                                            <input type="text" class="correct-answer" placeholder="Enter correct answer (A, B, C, or D)">`;
+                    answerContainer.appendChild(answerDiv);
+                }
+            }
+
+            document.getElementById('submitBtn').addEventListener('click', function() {
+                const selectedOptions = Array.from(document.querySelectorAll('.option-circle.selected'))
+                    .map(circle => circle.getAttribute('data-option'));
+                const correctAnswers = Array.from(document.querySelectorAll('.correct-answer'))
+                    .map(input => input.value.trim().toUpperCase());
+
+                localStorage.setItem('selectedOptions', JSON.stringify(selectedOptions));
+                localStorage.setItem('correctAnswers', JSON.stringify(correctAnswers));
+
+                window.location.href = 'results.html';
+            });
+
+            populateAnswers();
+        });
+    </script>
+</body>
+</html>

@@ -63,43 +63,31 @@
         const testName = urlParams.get('testName');
         const selectedOptions = JSON.parse(decodeURIComponent(urlParams.get('options')));
         const numQuestions = parseInt(urlParams.get('numQuestions'));
+        const correctAnswers = JSON.parse(decodeURIComponent(urlParams.get('correctAnswers')));
 
         document.getElementById("testNameHeader").textContent = `Confirm answers for ${testName}`;
         const correctAnswersContainer = document.getElementById("correctAnswersContainer");
-
-        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Replace with actual correct answers
-        let userAnswers = [];
 
         for (let i = 0; i < numQuestions; i++) {
             const questionDiv = document.createElement("div");
             questionDiv.classList.add("question");
             questionDiv.innerHTML = `<strong>Q${i + 1}:</strong>
                 <div class="options-container">
-                    <div class="option-circle" data-question="${i + 1}" data-option="A">A</div>
-                    <div class="option-circle" data-question="${i + 1}" data-option="B">B</div>
-                    <div class="option-circle" data-question="${i + 1}" data-option="C">C</div>
-                    <div class="option-circle" data-question="${i + 1}" data-option="D">D</div>
+                    <div class="option-circle ${selectedOptions[i] === 'A' ? 'selected' : ''}" data-question="${i + 1}" data-option="A">A</div>
+                    <div class="option-circle ${selectedOptions[i] === 'B' ? 'selected' : ''}" data-question="${i + 1}" data-option="B">B</div>
+                    <div class="option-circle ${selectedOptions[i] === 'C' ? 'selected' : ''}" data-question="${i + 1}" data-option="C">C</div>
+                    <div class="option-circle ${selectedOptions[i] === 'D' ? 'selected' : ''}" data-question="${i + 1}" data-option="D">D</div>
                 </div>
-                <p>Your previously selected option: ${selectedOptions[i]}</p>`;
+                <p>Your selected option: ${selectedOptions[i]}</p>
+                <p>Correct option: ${correctAnswers[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
-
-            // Reset options initially
-            document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
-                circle.addEventListener("click", function() {
-                    const selectedQuestion = this.getAttribute('data-question');
-                    document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    userAnswers[selectedQuestion - 1] = this.getAttribute('data-option'); // Store user answer
-                });
-            });
         }
 
         document.getElementById("submitBtn").addEventListener("click", function() {
-            // Compare user answers with correct answers
             let score = 0;
             let results = [];
 
-            userAnswers.forEach((answer, index) => {
+            selectedOptions.forEach((answer, index) => {
                 const correctOption = correctAnswers[index];
                 const isCorrect = answer === correctOption;
                 results.push({ question: index + 1, correct: isCorrect, selected: answer, correctOption });

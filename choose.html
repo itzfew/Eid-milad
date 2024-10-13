@@ -6,7 +6,6 @@
     <title>Quiz App - Choose Options</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Add basic styles for this example */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -117,9 +116,6 @@
             // Redirect to correct.html with selected options
             window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}&numQuestions=${numQuestions}`;
         });
-
-        // Clear localStorage for new tests (to be implemented on new test start)
-        // localStorage.removeItem('quizAnswers');
     </script>
 </body>
 </html>

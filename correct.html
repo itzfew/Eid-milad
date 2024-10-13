@@ -107,14 +107,12 @@
             userAnswers.forEach((answer, index) => {
                 const correctOption = correctAnswers[index];
                 const isCorrect = answer === correctOption;
-                results.push({
-                    question: index + 1,
-                    correct: isCorrect,
-                    selected: answer,
-                    correctOption: correctOption
-                });
+                results.push({ question: index + 1, correct: isCorrect, selected: answer, correctOption });
                 if (isCorrect) score++;
             });
+
+            // Clear local storage to reset the quiz
+            localStorage.removeItem('quizAnswers');
 
             // Redirect to result.html with results
             window.location.href = `result.html?testName=${encodeURIComponent(testName)}&score=${score}&numQuestions=${numQuestions}&results=${encodeURIComponent(JSON.stringify(results))}`;

@@ -70,7 +70,7 @@
         document.getElementById("testNameHeader").textContent = `Choose options for ${testName}`;
         const questionContainer = document.getElementById("questionContainer");
 
-        // Load saved answers from localStorage (if available)
+        // Load saved answers from localStorage
         const savedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
 
         for (let i = 1; i <= numQuestions; i++) {

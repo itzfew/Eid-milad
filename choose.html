@@ -73,6 +73,10 @@
         // Load saved answers from localStorage
         const savedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
 
+        // Dummy correct answers for demonstration (You can modify this based on your questions)
+        const correctAnswers = ['A', 'B', 'C', 'D', 'A']; // Sample answers for the first 5 questions
+        const numOptions = correctAnswers.length;
+
         for (let i = 1; i <= numQuestions; i++) {
             const questionDiv = document.createElement("div");
             questionDiv.classList.add("question");
@@ -112,7 +116,7 @@
                 selectedOptions[circle.getAttribute('data-question') - 1] = circle.getAttribute('data-option');
             });
             // Redirect to correct.html with selected options
-            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}&numQuestions=${numQuestions}`;
+            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}&numQuestions=${numQuestions}&correctAnswers=${encodeURIComponent(JSON.stringify(correctAnswers))}`;
         });
     </script>
 </body>

@@ -34,10 +34,10 @@
                     <div class="option-circle" data-question="${i + 1}" data-option="C">C</div>
                     <div class="option-circle" data-question="${i + 1}" data-option="D">D</div>
                 </div>
-                <p>Your selected option: ${selectedOptions[i]}</p>`;
+                <p>Your previously selected option: ${selectedOptions[i]}</p>`;
             correctAnswersContainer.appendChild(questionDiv);
 
-            // Mark the user's selected option
+            // Reset options initially
             document.querySelectorAll(`.option-circle[data-question='${i + 1}']`).forEach(circle => {
                 circle.addEventListener("click", function() {
                     const selectedQuestion = this.getAttribute('data-question');
@@ -45,11 +45,6 @@
                     this.classList.add('selected');
                     userAnswers[selectedQuestion - 1] = this.getAttribute('data-option'); // Store user answer
                 });
-
-                // Pre-select the user's previous answer
-                if (circle.getAttribute('data-option') === selectedOptions[i]) {
-                    circle.classList.add('selected');
-                }
             });
         }
 
@@ -61,9 +56,10 @@
             userAnswers.forEach((answer, index) => {
                 if (answer === correctAnswers[index]) {
                     results.push({ question: index + 1, correct: true });
-                    score++;
+                    score += 4; // +4 for correct answer
                 } else {
                     results.push({ question: index + 1, correct: false });
+                    score -= 1; // -1 for incorrect answer
                 }
             });
 

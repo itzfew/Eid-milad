@@ -3,51 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App - Choose Options</title>
+    <title>Quiz App - Choose</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h3 id="testNameHeader"></h3>
-        <div id="questionContainer"></div>
-        <button id="nextBtn" class="button next-btn">Next</button>
+        <h1>Choose Your Answers</h1>
+        <form id="quizForm"></form>
+        <button id="submitBtn" class="button">Submit Answers</button>
     </div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const testName = urlParams.get('testName');
-        const numQuestions = parseInt(urlParams.get('numQuestions'));
+        const questions = [
+            { question: "What is 2 + 2?", options: ["3", "4", "5"], answer: 1 },
+            { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris"], answer: 2 },
+            // Add more questions here...
+        ];
 
-        document.getElementById("testNameHeader").textContent = `Choose options for ${testName}`;
-        const questionContainer = document.getElementById("questionContainer");
+        const quizForm = document.getElementById('quizForm');
 
-        for (let i = 1; i <= numQuestions; i++) {
-            const questionDiv = document.createElement("div");
-            questionDiv.classList.add("question");
-            questionDiv.innerHTML = `<strong>Q${i}:</strong>
-                <div class="options-container">
-                    <div class="option-circle" data-question="${i}" data-option="A">A</div>
-                    <div class="option-circle" data-question="${i}" data-option="B">B</div>
-                    <div class="option-circle" data-question="${i}" data-option="C">C</div>
-                    <div class="option-circle" data-question="${i}" data-option="D">D</div>
-                </div>`;
-            questionContainer.appendChild(questionDiv);
-        }
+        // Load saved answers from localStorage
+        const savedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
 
-        document.querySelectorAll(".option-circle").forEach(circle => {
-            circle.addEventListener("click", function() {
-                const selectedQuestion = this.getAttribute('data-question');
-                document.querySelectorAll(`.option-circle[data-question='${selectedQuestion}']`).forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+
+            q.options.forEach((option, i) => {
+                const checked = savedAnswers[index] === i ? 'checked' : '';
+                questionDiv.innerHTML += `
+                    <label>
+                        <input type="radio" name="question${index}" value="${i}" ${checked}>
+                        ${option}
+                    </label>
+                `;
             });
+
+            quizForm.appendChild(questionDiv);
         });
 
-        document.getElementById("nextBtn").addEventListener("click", function() {
-            const selectedOptions = [];
-            document.querySelectorAll(".option-circle.selected").forEach(circle => {
-                selectedOptions[circle.getAttribute('data-question') - 1] = circle.getAttribute('data-option');
+        document.getElementById('submitBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const answers = {};
+            questions.forEach((_, index) => {
+                answers[index] = document.querySelector(`input[name="question${index}"]:checked`)?.value;
             });
-            // Redirect to correct.html with selected options
-            window.location.href = `correct.html?testName=${encodeURIComponent(testName)}&options=${encodeURIComponent(JSON.stringify(selectedOptions))}&numQuestions=${numQuestions}`;
+            localStorage.setItem('quizAnswers', JSON.stringify(answers));
+
+            // Redirect to results page
+            const selectedAnswers = Object.values(answers);
+            const results = JSON.stringify(selectedAnswers);
+            window.location.href = `results.html?results=${encodeURIComponent(results)}`;
         });
     </script>
 </body>

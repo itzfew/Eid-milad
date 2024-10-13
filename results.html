@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Results</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,6 +17,21 @@
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const urlParams = new URLSearchParams(window.location.search);
         const testName = urlParams.get('testName');
         const score = parseInt(urlParams.get('score'));
@@ -23,15 +41,48 @@
         document.getElementById("testNameHeader").textContent = `Results for ${testName}`;
         const resultsContainer = document.getElementById("resultsContainer");
 
+        let correctCount = 0;
+        let incorrectCount = 0;
+
         results.forEach(({ question, correct }) => {
             const resultDiv = document.createElement("div");
             resultDiv.classList.add("result");
             resultDiv.textContent = `Q${question}: ${correct ? "Correct!" : "Incorrect!"}`;
             resultDiv.classList.add(correct ? 'correct' : 'incorrect');
+
+            if (correct) {
+                correctCount++;
+            } else {
+                incorrectCount++;
+            }
+
             resultsContainer.appendChild(resultDiv);
         });
 
-        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`; // Max score if all correct
+        const missedCount = numQuestions - (correctCount + incorrectCount);
+        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`;
+
+        // Save results to Firebase
+        const saveResults = () => {
+            const resultData = {
+                testName: testName,
+                date: new Date().toISOString(),
+                correct: correctCount,
+                incorrect: incorrectCount,
+                missed: missedCount,
+                score: score
+            };
+
+            database.ref('quizResults').push(resultData)
+                .then(() => {
+                    console.log('Results saved successfully.');
+                })
+                .catch((error) => {
+                    console.error('Error saving results: ', error);
+                });
+        };
+
+        saveResults();
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
             window.location.href = "index.html";

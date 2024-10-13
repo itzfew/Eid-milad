@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App - Results</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,9 +34,6 @@
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
-        canvas {
-            margin: 20px 0;
-        }
         button {
             padding: 10px 20px;
             background: #007BFF;
@@ -58,25 +52,9 @@
         <h3 id="testNameHeader"></h3>
         <div id="resultsContainer"></div>
         <p id="finalScore"></p>
-        <canvas id="scoreChart"></canvas>
         <button id="newExamBtn" class="button new-exam-btn">New Exam</button>
     </div>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
-            authDomain: "quizes-3028d.firebaseapp.com",
-            projectId: "quizes-3028d",
-            storageBucket: "quizes-3028d.appspot.com",
-            messagingSenderId: "624591251031",
-            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
-            measurementId: "G-QMZK5Y6769"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
         const urlParams = new URLSearchParams(window.location.search);
         const testName = urlParams.get('testName');
         const score = parseInt(urlParams.get('score'));
@@ -105,51 +83,7 @@
         });
 
         const missedCount = numQuestions - (correctCount + incorrectCount);
-        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions * 4}`;
-
-        // Save results to Firebase
-        const saveResults = () => {
-            const resultData = {
-                testName: testName,
-                date: new Date().toISOString(),
-                correct: correctCount,
-                incorrect: incorrectCount,
-                missed: missedCount,
-                score: score,
-                questionNumbers: results.map(r => r.question).join(',')
-            };
-
-            database.ref('quizResults').push(resultData)
-                .then(() => {
-                    console.log('Results saved successfully.');
-                })
-                .catch((error) => {
-                    console.error('Error saving results: ', error);
-                });
-        };
-
-        saveResults();
-
-        // Prepare data for chart
-        const ctx = document.getElementById('scoreChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Correct', 'Incorrect', 'Missed'],
-                datasets: [{
-                    label: 'Results',
-                    data: [correctCount, incorrectCount, missedCount],
-                    backgroundColor: ['#4caf50', '#f44336', '#ffc107']
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        document.getElementById("finalScore").textContent = `Final Score: ${score} / ${numQuestions}`;
 
         document.getElementById("newExamBtn").addEventListener("click", function() {
             localStorage.removeItem('quizAnswers'); // Clear saved answers

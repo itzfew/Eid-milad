@@ -6,7 +6,6 @@
     <title>Quiz App - Choose Options</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Add basic styles for this example */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -71,7 +70,7 @@
         document.getElementById("testNameHeader").textContent = `Choose options for ${testName}`;
         const questionContainer = document.getElementById("questionContainer");
 
-        // Load saved answers from localStorage
+        // Load saved answers from localStorage (if available)
         const savedAnswers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
 
         for (let i = 1; i <= numQuestions; i++) {

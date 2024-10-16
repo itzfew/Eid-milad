@@ -7,9 +7,9 @@ body {
 
 .container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: auto;
     padding: 20px;
-    background: #fff;
+    background: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -18,31 +18,79 @@ h1, h2, h3 {
     color: #333;
 }
 
-input[type="email"], input[type="password"], input[type="number"], select {
+.input-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select {
     width: 100%;
     padding: 10px;
-    margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
 button {
+    background-color: #5cb85c;
+    color: white;
     padding: 10px 15px;
-    background-color: #28a745;
-    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #218838;
+    background-color: #4cae4c;
+}
+
+.exam-list {
+    margin-top: 20px;
+}
+
+.exam-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
 }
 
 .question-container {
-    margin: 20px 0;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #e9f7fd;
 }
 
-.message {
+.result {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    background-color: #d4edda;
+}
+
+.question-detail {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.option {
+    padding: 5px;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
     color: red;
 }

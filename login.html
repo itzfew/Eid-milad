@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="authTitle">Login</h1>
+        <div id="userInfo" style="display:none;">
+            <p>Welcome, <span id="userEmail"></span></p>
+            <button id="logoutBtn">Logout</button>
+            <h2>Your Attempted Exams</h2>
+            <ul id="examsList"></ul>
+        </div>
+        
+        <div id="authForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button id="loginBtn">Login</button>
+            <button id="signupBtn">Signup</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            // Your Firebase config
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        const userInfo = document.getElementById('userInfo');
+        const authForm = document.getElementById('authForm');
+        const userEmail = document.getElementById('userEmail');
+        const examsList = document.getElementById('examsList');
+
+        // Check authentication state
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                userEmail.innerText = user.email;
+                userInfo.style.display = 'block';
+                authForm.style.display = 'none';
+                loadUserExams(user.uid);
+            } else {
+                userInfo.style.display = 'none';
+                authForm.style.display = 'block';
+            }
+        });
+
+        // Load attempted exams
+        function loadUserExams(uid) {
+            database.ref('users/' + uid + '/exams').once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examData = childSnapshot.val();
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        Exam ID: ${examData.examID} 
+                        <button onclick="viewExamDetail('${examData.examID}')">View Result</button>
+                    `;
+                    examsList.appendChild(listItem);
+                });
+            });
+        }
+
+        // Login
+        document.getElementById('loginBtn').onclick = function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, password).catch(error => {
+                alert(error.message);
+            });
+        };
+
+        // Signup
+        document.getElementById('signupBtn').onclick = function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.createUserWithEmailAndPassword(email, password).catch(error => {
+                alert(error.message);
+            });
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = function() {
+            auth.signOut();
+        };
+
+        // View Exam Detail
+        function viewExamDetail(examID) {
+            window.location.href = `detail.html?examID=${examID}`;
+        }
+    </script>
+</body>
+</html>

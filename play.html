@@ -11,8 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #ffffff; /* Changed to white background */
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #f0f8ff, #e6f2ff);
             margin: 0;
             padding: 20px;
             display: flex;
@@ -26,34 +26,52 @@
         }
 
         .question-container {
-            background-color: #ffffff; /* No container effects */
-            border: none;
-            padding: 15px;
-            margin: 10px 0;
-            width: 100%; /* Full width */
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .question-container:hover {
+            transform: scale(1.02);
         }
 
         label {
             display: block;
-            margin: 5px 0;
-            padding: 5px;
-            border: none;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+
+        label:hover {
+            background-color: #e2e6ea;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
         }
 
         button {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
+            transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #218838;
+            background-color: #0056b3;
         }
 
         .result {
@@ -61,14 +79,18 @@
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            background-color: #ffffff;
-            width: 100%; /* Full width */
+            background-color: #fff;
+            width: 100%;
+            max-width: 600px;
             text-align: left;
             display: none;
         }
 
         .chart-container {
-            width: 100%; /* Full width */
+            position: relative;
+            height: 40vh;
+            width: 100%;
+            max-width: 600px;
             margin-top: 20px;
         }
 
@@ -90,6 +112,15 @@
 
         .incorrect {
             color: red;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -160,11 +191,13 @@
                 questionDiv.classList.add('question-container');
                 questionDiv.innerHTML = `
                     <h3>Question ${index + 1}: ${q.question}</h3>
-                    ${q.options.map((opt, i) => `
-                        <label>
-                            <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
-                        </label>
-                    `).join('')}
+                    <div class="options">
+                        ${q.options.map((opt, i) => `
+                            <label>
+                                <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
                 `;
                 quizForm.appendChild(questionDiv);
             });

@@ -146,6 +146,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const subject = urlParams.get('subject');
         const numQuestions = parseInt(urlParams.get('numQuestions'));
+        let selectedQuestions = [];  // Declare variable to hold selected questions
 
         document.getElementById('quizSubject').innerText = `Subject: ${subject}`;
 
@@ -166,7 +167,7 @@
             });
 
             // Shuffle and select questions
-            const selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
+            selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
 
             // Create quiz form
             const quizForm = document.getElementById('quizForm');
@@ -302,15 +303,14 @@
         }
 
         function showDetail() {
-            const total = document.getElementById('quizForm').children.length;
-            const correct = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter((input, index) => {
-                const questionIndex = Number(input.name.replace('question', ''));
-                return parseInt(input.value) === questions[questionIndex].answer;
-            }).length;
-            const incorrect = total - correct;
-            const missed = total - (correct + incorrect);
+            const userAnswers = getUserAnswers(selectedQuestions);
+            const correct = selectedQuestions.filter((q, index) => userAnswers[index] === q.answer).length;
+            const incorrect = selectedQuestions.length - correct;
+            const missed = userAnswers.filter(answer => answer === null).length;
 
-            window.location.href = `detail.html?subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${total}`;
+            const score = calculateResults(selectedQuestions, userAnswers);
+
+            window.location.href = `detail.html?subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${selectedQuestions.length}`;
         }
     </script>
 </body>

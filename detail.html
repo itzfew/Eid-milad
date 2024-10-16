@@ -3,102 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Details</title>
+    <title>Exam Detail</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e9f5ff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .result-container {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .question-detail {
-            margin: 15px 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            transition: background-color 0.3s;
-        }
-
-        .question-detail:hover {
-            background-color: #f1f1f1;
-        }
-
-        .correct {
-            color: green;
-            font-weight: bold;
-        }
-
-        .incorrect {
-            color: red;
-            font-weight: bold;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
-    <h1>Quiz Detail Results</h1>
-    <div id="resultContainer" class="result-container"></div>
-    <button id="takeQuizButton">Take Another Quiz</button>
+    <div class="container detail-container">
+        <h1>Exam Details</h1>
+        <div id="examDetails"></div>
+    </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const subject = urlParams.get('subject');
-        const score = parseInt(urlParams.get('score'));
-        const correct = parseInt(urlParams.get('correct'));
-        const incorrect = parseInt(urlParams.get('incorrect'));
-        const missed = parseInt(urlParams.get('missed'));
-        const total = parseInt(urlParams.get('total'));
-
-        document.getElementById('resultContainer').innerHTML = `
-            <h2>Your Results for ${subject}</h2>
-            <p>Total Questions: ${total}</p>
-            <p>Correct: <span class="correct">${correct}</span></p>
-            <p>Incorrect: <span class="incorrect">${incorrect}</span></p>
-            <p>Missed: ${missed}</p>
-            <p>Total Score: ${score} out of ${total} (${((correct / total) * 100).toFixed(2)}%)</p>
-        `;
-
-        // Initialize Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
             authDomain: "quizes-3028d.firebaseapp.com",
@@ -109,42 +26,47 @@
             appId: "1:624591251031:web:e093472f24fdeb29fc2512",
             measurementId: "G-QMZK5Y6769"
         };
+
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
 
-        // Fetch detailed results from Firebase
-        const user = firebase.auth().currentUser;
-        if (user) {
-            const userId = user.uid;
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const examID = urlParams.get('examID');
+                fetchExamDetails(user.uid, examID);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
 
-            firebase.database().ref(`users/${userId}/exams`).once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const examData = childSnapshot.val();
-                    if (examData.subject === subject) {
-                        displayDetailedResults(examData);
-                    }
-                });
+        function fetchExamDetails(userId, examID) {
+            const examDetailsDiv = document.getElementById('examDetails');
+            database.ref(`users/${userId}/exams/${examID}`).once('value').then(snapshot => {
+                const examData = snapshot.val();
+                if (examData) {
+                    examDetailsDiv.innerHTML = `
+                        <h2>Subject: ${examData.subject}</h2>
+                        <p>Date: ${examData.date}</p>
+                        <p>Score: ${examData.score}</p>
+                        <p>Email: ${examData.email}</p>
+                        <h3>Your Answers:</h3>
+                        ${examData.questions.map((q, index) => `
+                            <div class="question-detail">
+                                <p><strong>${q.question}</strong></p>
+                                <p class="option ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                                    Your answer: ${q.options[examData.userAnswers[index] - 1]} 
+                                    | Correct answer: ${q.options[q.correctAnswer - 1]}
+                                </p>
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    examDetailsDiv.innerHTML = `<p>No details found for this exam.</p>`;
+                }
             });
         }
-
-        function displayDetailedResults(examData) {
-            const resultContainer = document.getElementById('resultContainer');
-            examData.questions.forEach((q, index) => {
-                const userAnswer = examData.userAnswers[index];
-                const isCorrect = userAnswer === q.correctAnswer;
-                resultContainer.innerHTML += `
-                    <div class="question-detail">
-                        <h4>Question ${index + 1}: ${q.question}</h4>
-                        <p>Your Answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAnswer ? q.options[userAnswer - 1] : "Not answered"}</span></p>
-                        <p>Correct Answer: <span class="correct">${q.options[q.correctAnswer - 1]}</span></p>
-                        <p>Explanation: ${q.explanation}</p>
-                    </div>
-                `;
-            });
-        }
-
-        document.getElementById('takeQuizButton').onclick = function() {
-            window.location.href = 'quiz_play.html?subject=' + subject;
-        };
     </script>
 </body>
 </html>

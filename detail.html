@@ -8,6 +8,40 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <style>
+        .question-detail {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .answer-info {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .question-title {
+            font-weight: bold;
+        }
+
+        .explanation {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <div class="container detail-container">
@@ -53,13 +87,15 @@
                         <p>Email: ${examData.email}</p>
                         <h3>Your Answers:</h3>
                         ${examData.questions.map((q, index) => `
-                            <div class="question-detail">
-                                <p><strong>${q.question}</strong></p>
-                                <p class="option ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                            <div class="question-detail" onclick="toggleAnswer(${index})">
+                                <p class="question-title">Q${index + 1}: ${q.question}</p>
+                                <p class="answer-info ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
                                     Your answer: ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
-                                    | Correct answer: ${q.options[q.correctAnswer - 1]}
-                                    <br><em>${q.explanation}</em>
+                                    <br>Correct answer: <span class="correct">${q.options[q.correctAnswer - 1]}</span>
                                 </p>
+                                <div class="answer-info" id="answerInfo${index}">
+                                    <p class="explanation">Explanation: ${q.explanation}</p>
+                                </div>
                             </div>
                         `).join('')}
                     `;
@@ -67,6 +103,11 @@
                     examDetailsDiv.innerHTML = `<p>No details found for this exam.</p>`;
                 }
             });
+        }
+
+        function toggleAnswer(index) {
+            const answerInfo = document.getElementById(`answerInfo${index}`);
+            answerInfo.style.display = answerInfo.style.display === 'none' || answerInfo.style.display === '' ? 'block' : 'none';
         }
     </script>
 </body>

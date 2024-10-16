@@ -61,6 +61,7 @@
             const quizForm = document.getElementById('quizForm');
             selectedQuestions.forEach((q, index) => {
                 const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-container');
                 questionDiv.innerHTML = `
                     <h3>Question ${index + 1}: ${q.question}</h3>
                     ${q.options.map((opt, i) => `
@@ -74,10 +75,18 @@
 
             document.getElementById('submitBtn').onclick = function(event) {
                 event.preventDefault();
+                const userAnswers = getUserAnswers(selectedQuestions);
                 const score = calculateResults(selectedQuestions);
-                saveQuiz(selectedQuestions, score);
+                saveQuiz(selectedQuestions, userAnswers, score);
             };
         });
+
+        function getUserAnswers(questions) {
+            return questions.map((q, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                return selectedOption ? parseInt(selectedOption.value) : null; // Return null if no answer selected
+            });
+        }
 
         function calculateResults(questions) {
             let score = 0;
@@ -91,7 +100,7 @@
             return score;
         }
 
-        function saveQuiz(questions, score) {
+        function saveQuiz(questions, userAnswers, score) {
             const date = new Date();
             const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
             const timeStamp = date.getTime(); // Unique timestamp
@@ -101,6 +110,7 @@
                 subject,
                 date: dateString,
                 score,
+                userAnswers,
                 questions: questions.map(q => ({
                     id: q.id,
                     question: q.question,

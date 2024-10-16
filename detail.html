@@ -8,68 +8,12 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .question-detail {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin: 10px 0;
-            padding: 15px;
-            background-color: #fff;
-            width: 100%;
-            max-width: 600px;
-            cursor: pointer;
-            transition: box-shadow 0.2s;
-        }
-
-        .question-detail:hover {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .answer-info {
-            display: none;
-            margin-top: 10px;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-        }
-
-        .correct {
-            color: green;
-            font-weight: bold;
-        }
-
-        .incorrect {
-            color: red;
-            font-weight: bold;
-        }
-
-        .question-title {
-            font-weight: bold;
-        }
-
-        .explanation {
-            font-weight: bold;
-            color: #555;
-        }
-    </style>
 </head>
 <body>
-    <h1>Exam Details</h1>
-    <div id="examDetails"></div>
+    <div class="container detail-container">
+        <h1>Exam Details</h1>
+        <div id="examDetails"></div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -109,19 +53,13 @@
                         <p>Email: ${examData.email}</p>
                         <h3>Your Answers:</h3>
                         ${examData.questions.map((q, index) => `
-                            <div class="question-detail" onclick="toggleAnswer(${index})">
-                                <p class="question-title">Q${index + 1}: ${q.question}</p>
-                                <p class="answer-info ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
-                                    Your answer: 
-                                    <span class="${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
-                                        ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
-                                    </span>
-                                    <br>Correct answer: 
-                                    <span class="correct">${q.options[q.correctAnswer - 1]}</span>
+                            <div class="question-detail">
+                                <p><strong>${q.question}</strong></p>
+                                <p class="option ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                                    Your answer: ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
+                                    | Correct answer: ${q.options[q.correctAnswer - 1]}
+                                    <br><em>${q.explanation}</em>
                                 </p>
-                                <div class="answer-info" id="answerInfo${index}">
-                                    <p class="explanation">Explanation: ${q.explanation}</p>
-                                </div>
                             </div>
                         `).join('')}
                     `;
@@ -129,11 +67,6 @@
                     examDetailsDiv.innerHTML = `<p>No details found for this exam.</p>`;
                 }
             });
-        }
-
-        function toggleAnswer(index) {
-            const answerInfo = document.getElementById(`answerInfo${index}`);
-            answerInfo.style.display = answerInfo.style.display === 'none' || answerInfo.style.display === '' ? 'block' : 'none';
         }
     </script>
 </body>

@@ -9,12 +9,24 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
         .question-detail {
             border: 1px solid #ddd;
             border-radius: 5px;
             margin: 10px 0;
-            padding: 10px;
-            background-color: #f9f9f9;
+            padding: 15px;
+            background-color: #fff;
             cursor: pointer;
         }
 
@@ -27,10 +39,12 @@
 
         .correct {
             color: green;
+            font-weight: bold;
         }
 
         .incorrect {
             color: red;
+            font-weight: bold;
         }
 
         .question-title {
@@ -90,8 +104,12 @@
                             <div class="question-detail" onclick="toggleAnswer(${index})">
                                 <p class="question-title">Q${index + 1}: ${q.question}</p>
                                 <p class="answer-info ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
-                                    Your answer: ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
-                                    <br>Correct answer: <span class="correct">${q.options[q.correctAnswer - 1]}</span>
+                                    Your answer: 
+                                    <span class="${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                                        ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
+                                    </span>
+                                    <br>Correct answer: 
+                                    <span class="correct">${q.options[q.correctAnswer - 1]}</span>
                                 </p>
                                 <div class="answer-info" id="answerInfo${index}">
                                     <p class="explanation">Explanation: ${q.explanation}</p>

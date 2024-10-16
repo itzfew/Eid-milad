@@ -116,7 +116,6 @@
         if (user) {
             const userId = user.uid;
 
-            // Replace with your Firebase database reference
             firebase.database().ref(`users/${userId}/exams`).once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     const examData = childSnapshot.val();
@@ -135,7 +134,7 @@
                 resultContainer.innerHTML += `
                     <div class="question-detail">
                         <h4>Question ${index + 1}: ${q.question}</h4>
-                        <p>Your Answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${q.options[userAnswer - 1]}</span></p>
+                        <p>Your Answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAnswer ? q.options[userAnswer - 1] : "Not answered"}</span></p>
                         <p>Correct Answer: <span class="correct">${q.options[q.correctAnswer - 1]}</span></p>
                         <p>Explanation: ${q.explanation}</p>
                     </div>

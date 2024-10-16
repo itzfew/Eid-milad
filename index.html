@@ -3,29 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App - Start</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Quiz Selection</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
-        <h3>OMR Checking</h3>
-        <label for="testName">Test Name:</label>
-        <input type="text" id="testName" class="input" required>
+        <h1>Select Quiz</h1>
+        <label for="subject">Select Subject:</label>
+        <select id="subject"></select>
+
         <label for="numQuestions">Number of Questions:</label>
-        <input type="number" id="numQuestions" min="1" max="200" value="15" class="input" required>
-        <button id="startBtn" class="button start-btn">Start Quiz</button>
+        <input type="number" id="numQuestions" min="1" max="10" value="5">
+
+        <button id="generateBtn">Generate Quiz</button>
     </div>
+
     <script>
-        document.getElementById("startBtn").addEventListener("click", function() {
-            const testName = document.getElementById("testName").value.trim();
-            const numQuestions = parseInt(document.getElementById("numQuestions").value);
-            if (testName === "" || numQuestions <= 0) {
-                alert("Please enter a valid test name and number of questions.");
-                return;
-            }
-            // Redirect to choose.html with parameters
-            window.location.href = `choose.html?testName=${encodeURIComponent(testName)}&numQuestions=${numQuestions}`;
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Fetch subjects from quizzes
+        const subjectSelect = document.getElementById('subject');
+
+        database.ref('quizzes').once('value').then(snapshot => {
+            const subjects = new Set(); // Using a Set to get unique subjects
+            snapshot.forEach(childSnapshot => {
+                const quizData = childSnapshot.val();
+                if (quizData.subjectName) {
+                    subjects.add(quizData.subjectName);
+                }
+            });
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectSelect.appendChild(option);
+            });
         });
+
+        document.getElementById('generateBtn').onclick = function() {
+            const subject = document.getElementById('subject').value;
+            const numQuestions = document.getElementById('numQuestions').value;
+            window.location.href = `play.html?subject=${subject}&numQuestions=${numQuestions}`;
+        };
     </script>
 </body>
 </html>

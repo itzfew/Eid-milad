@@ -35,10 +35,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .question-container h3 {
-            margin: 0 0 10px;
-        }
-
         label {
             display: block;
             margin: 5px 0;
@@ -73,20 +69,6 @@
         .result h2 {
             margin: 0 0 10px;
             color: #333;
-        }
-
-        .explanation {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .correct {
-            color: green;
-        }
-
-        .incorrect {
-            color: red;
         }
 
         .button-container {
@@ -202,19 +184,12 @@
             resultDiv.innerHTML = `
                 <h2>Your Results</h2>
                 <p>Total Questions: ${total}</p>
-                <p>Correct: <span class="correct">${correct}</span></p>
-                <p>Incorrect: <span class="incorrect">${incorrect}</span></p>
+                <p>Correct: ${correct}</p>
+                <p>Incorrect: ${incorrect}</p>
                 <p>Missed: ${missed}</p>
                 <p>Total Score: ${score} out of ${total} (${percentage}%)</p>
-                <div class="explanation">
-                    ${questions.map((q, index) => `
-                        <div>
-                            <strong>Question ${index + 1}:</strong> ${q.question}<br>
-                            <strong>Your Answer:</strong> ${userAnswers[index] !== null ? `<span class="${userAnswers[index] === q.answer ? 'correct' : 'incorrect'}">${q.options[userAnswers[index] - 1]}</span>` : '<span class="incorrect">Not Answered</span>'}<br>
-                            <strong>Correct Answer:</strong> <span class="correct">${q.options[q.answer - 1]}</span><br>
-                            <strong>Explanation:</strong> ${q.explanation}<br><br>
-                        </div>
-                    `).join('')}
+                <div class="button-container">
+                    <button class="detail-button" onclick="showDetail('${subject}', '${score}', ${correct}, ${incorrect}, ${missed}, ${total})">View Details</button>
                 </div>
             `;
 
@@ -247,7 +222,8 @@
                     id: q.id,
                     question: q.question,
                     options: q.options,
-                    correctAnswer: q.answer
+                    correctAnswer: q.answer,
+                    explanation: q.explanation
                 }))
             };
 
@@ -258,6 +234,11 @@
                 .catch(error => {
                     console.error('Error saving quiz:', error);
                 });
+        }
+
+        function showDetail(subject, score, correct, incorrect, missed, total) {
+            // Redirect to detail.html with query parameters
+            window.location.href = `detail.html?subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${total}`;
         }
     </script>
 </body>

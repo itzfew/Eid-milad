@@ -5,20 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Login</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: #aaa;
+        }
+
+        .spinner {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .forgot-password {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="loginContainer">
         <h1>User Login</h1>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button id="loginBtn">Login</button>
-        <button id="signupBtn">Sign Up</button>
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password" required>
+            <i class="spinner fas fa-spinner fa-spin" id="loadingSpinner"></i>
+        </div>
+        <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+        <button id="signupBtn"><i class="fas fa-user-plus"></i> Sign Up</button>
+        <div class="forgot-password" id="forgotPassword">Forgot Password?</div>
         <div id="message"></div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
@@ -33,31 +140,78 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in, redirect to the main page
+                window.location.href = 'index.html';
+            } else {
+                // User is not signed in, show the login form
+                document.getElementById('loginContainer').style.display = 'block';
+            }
+        });
 
         document.getElementById('loginBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'inline-block';
+
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => {
                     window.location.href = 'index.html';
                 })
                 .catch(error => {
-                    document.getElementById('message').innerText = error.message;
+                    showMessage(error.message, 'error');
+                })
+                .finally(() => {
+                    loadingSpinner.style.display = 'none';
                 });
         };
 
         document.getElementById('signupBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'inline-block';
+
             auth.createUserWithEmailAndPassword(email, password)
                 .then(() => {
-                    window.location.href = 'index.html';
+                    showMessage("Sign up successful! Redirecting...", 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
                 })
                 .catch(error => {
-                    document.getElementById('message').innerText = error.message;
+                    showMessage(error.message, 'error');
+                })
+                .finally(() => {
+                    loadingSpinner.style.display = 'none';
                 });
         };
+
+        document.getElementById('forgotPassword').onclick = function() {
+            const email = document.getElementById('email').value;
+            if (email) {
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        showMessage("Password reset email sent!", 'success');
+                    })
+                    .catch(error => {
+                        showMessage(error.message, 'error');
+                    });
+            } else {
+                showMessage("Please enter your email first.", 'error');
+            }
+        };
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerText = message;
+            messageDiv.className = type === 'error' ? 'error' : 'success';
+            messageDiv.style.display = 'block';
+        }
     </script>
 </body>
 </html>

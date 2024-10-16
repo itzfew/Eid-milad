@@ -3,67 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Detail</title>
+    <title>Quiz Details</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+
+        .correct {
+            border-left: 5px solid #28a745;
+        }
+
+        .incorrect {
+            border-left: 5px solid #dc3545;
+        }
+
+        .explanation {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Exam Details</h1>
-        <div id="examDetails"></div>
-    </div>
+    <h1>Quiz Details</h1>
+    <div class="details" id="quizDetails"></div>
+    <button onclick="window.history.back()">Back to Results</button>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
-            authDomain: "quizes-3028d.firebaseapp.com",
-            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
-            projectId: "quizes-3028d",
-            storageBucket: "quizes-3028d.appspot.com",
-            messagingSenderId: "624591251031",
-            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
-            measurementId: "G-QMZK5Y6769"
-        };
+        const urlParams = new URLSearchParams(window.location.search);
+        const subject = urlParams.get('subject');
+        const score = urlParams.get('score');
+        const correct = parseInt(urlParams.get('correct'));
+        const incorrect = parseInt(urlParams.get('incorrect'));
+        const missed = parseInt(urlParams.get('missed'));
+        const total = parseInt(urlParams.get('total'));
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+        document.getElementById('quizDetails').innerHTML = `
+            <h2>Subject: ${subject}</h2>
+            <p>Total Questions: ${total}</p>
+            <p>Score: ${score}</p>
+            <p>Correct: ${correct}</p>
+            <p>Incorrect: ${incorrect}</p>
+            <p>Missed: ${missed}</p>
+            <hr>
+        `;
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const examID = urlParams.get('examID');
-                fetchExamDetails(user.uid, examID);
-            } else {
-                window.location.href = 'login.html';
+        // Mock data - replace with actual data retrieval from Firebase or other sources
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                options: ["Berlin", "Madrid", "Paris", "Lisbon"],
+                correctAnswer: 3,
+                selectedAnswer: 3,
+                explanation: "Paris is the capital of France."
+            },
+            {
+                question: "What is 2 + 2?",
+                options: ["3", "4", "5", "6"],
+                correctAnswer: 2,
+                selectedAnswer: 1,
+                explanation: "2 + 2 equals 4."
             }
-        });
+            // Add more questions as needed
+        ];
 
-        function fetchExamDetails(userId, examID) {
-            const examDetailsDiv = document.getElementById('examDetails');
-            database.ref(`users/${userId}/exams/${examID}`).once('value').then(snapshot => {
-                const examData = snapshot.val();
-                if (examData) {
-                    examDetailsDiv.innerHTML = `
-                        <h2>Subject: ${examData.subject}</h2>
-                        <p>Date: ${examData.date}</p>
-                        <p>Score: ${examData.score}</p>
-                        <p>Email: ${examData.email}</p>
-                        <h3>Your Answers:</h3>
-                        ${examData.questions.map((q, index) => `
-                            <div>
-                                <p>${q.question}</p>
-                                <p>Your answer: ${q.options[examData.userAnswers[index] - 1]} | Correct answer: ${q.options[q.correctAnswer - 1]}</p>
-                            </div>
-                        `).join('')}
-                    `;
-                } else {
-                    examDetailsDiv.innerHTML = `<p>No details found for this exam.</p>`;
-                }
-            });
-        }
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-container';
+            questionDiv.classList.add(q.selectedAnswer === q.correctAnswer ? 'correct' : 'incorrect');
+            questionDiv.innerHTML = `
+                <h3>Question ${index + 1}: ${q.question}</h3>
+                <p>Your answer: ${q.options[q.selectedAnswer - 1]} (${q.selectedAnswer})</p>
+                <p>Correct answer: ${q.options[q.correctAnswer - 1]} (${q.correctAnswer})</p>
+                <p class="explanation">Explanation: ${q.explanation}</p>
+            `;
+            document.getElementById('quizDetails').appendChild(questionDiv);
+        });
     </script>
 </body>
 </html>

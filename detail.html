@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
+            background-color: #e9f5ff;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -24,28 +24,35 @@
         .result-container {
             background-color: #fff;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             padding: 20px;
             width: 100%;
             max-width: 600px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
 
         .question-detail {
-            margin: 10px 0;
-            padding: 10px;
+            margin: 15px 0;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+
+        .question-detail:hover {
+            background-color: #f1f1f1;
         }
 
         .correct {
             color: green;
+            font-weight: bold;
         }
 
         .incorrect {
             color: red;
+            font-weight: bold;
         }
 
         button {
@@ -57,6 +64,7 @@
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
+            transition: background-color 0.3s;
         }
 
         button:hover {
@@ -70,23 +78,9 @@
 <body>
     <h1>Quiz Detail Results</h1>
     <div id="resultContainer" class="result-container"></div>
-    <button onclick="window.location.href='quiz_play.html?subject=' + subject">Take Another Quiz</button>
+    <button id="takeQuizButton">Take Another Quiz</button>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
-            authDomain: "quizes-3028d.firebaseapp.com",
-            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
-            projectId: "quizes-3028d",
-            storageBucket: "quizes-3028d.appspot.com",
-            messagingSenderId: "624591251031",
-            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
-            measurementId: "G-QMZK5Y6769"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        
         const urlParams = new URLSearchParams(window.location.search);
         const subject = urlParams.get('subject');
         const score = parseInt(urlParams.get('score'));
@@ -104,16 +98,28 @@
             <p>Total Score: ${score} out of ${total} (${((correct / total) * 100).toFixed(2)}%)</p>
         `;
 
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+        firebase.initializeApp(firebaseConfig);
+
         // Fetch detailed results from Firebase
         const user = firebase.auth().currentUser;
         if (user) {
             const userId = user.uid;
 
-            // Fetch the exam data for the current user
+            // Replace with your Firebase database reference
             firebase.database().ref(`users/${userId}/exams`).once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     const examData = childSnapshot.val();
-                    // Match the subject to display relevant exam details
                     if (examData.subject === subject) {
                         displayDetailedResults(examData);
                     }
@@ -136,6 +142,10 @@
                 `;
             });
         }
+
+        document.getElementById('takeQuizButton').onclick = function() {
+            window.location.href = 'quiz_play.html?subject=' + subject;
+        };
     </script>
 </body>
 </html>

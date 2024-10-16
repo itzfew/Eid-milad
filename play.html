@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -24,24 +24,52 @@
             margin-bottom: 20px;
         }
 
-        .question-container {
+        .result {
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 5px;
-            padding: 15px;
-            margin: 10px 0;
+            padding: 20px;
             width: 100%;
             max-width: 600px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
-        label {
-            display: block;
+        .result h2 {
+            margin: 0 0 15px;
+            color: #333;
+        }
+
+        .result p {
             margin: 5px 0;
+            font-size: 18px;
+        }
+
+        .chart {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .bar {
+            width: 30%;
+            background-color: #28a745;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .bar.incorrect {
+            background-color: #dc3545;
+        }
+
+        .bar.missed {
+            background-color: #ffc107;
         }
 
         button {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             padding: 10px 15px;
             border: none;
@@ -52,42 +80,12 @@
         }
 
         button:hover {
-            background-color: #218838;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
-            width: 100%;
-            max-width: 600px;
-            text-align: left;
-        }
-
-        .result h2 {
-            margin: 0 0 10px;
-            color: #333;
-        }
-
-        .button-container {
-            margin-top: 20px;
-        }
-
-        .detail-button {
-            background-color: #007bff;
-        }
-
-        .detail-button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <h1 id="quizSubject"></h1>
-    <form id="quizForm"></form>
-    <button id="submitBtn">Submit Answers</button>
     <div id="result" class="result" style="display:none;"></div>
 
     <script>
@@ -131,22 +129,6 @@
             // Shuffle and select questions
             const selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
 
-            // Create quiz form
-            const quizForm = document.getElementById('quizForm');
-            selectedQuestions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.classList.add('question-container');
-                questionDiv.innerHTML = `
-                    <h3>Question ${index + 1}: ${q.question}</h3>
-                    ${q.options.map((opt, i) => `
-                        <label>
-                            <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
-                        </label>
-                    `).join('')}
-                `;
-                quizForm.appendChild(questionDiv);
-            });
-
             document.getElementById('submitBtn').onclick = function(event) {
                 event.preventDefault();
                 const userAnswers = getUserAnswers(selectedQuestions);
@@ -178,7 +160,6 @@
             const correct = questions.filter((q, index) => userAnswers[index] === q.answer).length;
             const incorrect = total - correct;
             const missed = userAnswers.filter(answer => answer === null).length;
-            const percentage = ((correct / total) * 100).toFixed(2);
 
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
@@ -187,10 +168,12 @@
                 <p>Correct: ${correct}</p>
                 <p>Incorrect: ${incorrect}</p>
                 <p>Missed: ${missed}</p>
-                <p>Total Score: ${score} out of ${total} (${percentage}%)</p>
-                <div class="button-container">
-                    <button class="detail-button" onclick="showDetail('${subject}', '${score}', ${correct}, ${incorrect}, ${missed}, ${total})">View Details</button>
+                <div class="chart">
+                    <div class="bar" style="height: ${correct * 20}px;">${correct}</div>
+                    <div class="bar incorrect" style="height: ${incorrect * 20}px;">${incorrect}</div>
+                    <div class="bar missed" style="height: ${missed * 20}px;">${missed}</div>
                 </div>
+                <button onclick="showDetail('${subject}', '${score}', ${correct}, ${incorrect}, ${missed}, ${total})">View Details</button>
             `;
 
             // Automatically save quiz results to Firebase
@@ -237,7 +220,6 @@
         }
 
         function showDetail(subject, score, correct, incorrect, missed, total) {
-            // Redirect to detail.html with query parameters
             window.location.href = `detail.html?subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${total}`;
         }
     </script>

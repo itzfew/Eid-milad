@@ -6,11 +6,16 @@
     <title>Quiz Selection</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Select Quiz</h1>
+        <div id="userInfo" style="display:none;">
+            <p>Welcome, <span id="userEmail"></span></p>
+            <button id="logoutBtn">Logout</button>
+        </div>
         <label for="subject">Select Subject:</label>
         <select id="subject"></select>
 
@@ -18,6 +23,9 @@
         <input type="number" id="numQuestions" min="1" max="10" value="5">
 
         <button id="generateBtn">Generate Quiz</button>
+
+        <h2>Your Attempted Exams</h2>
+        <div id="examList"></div>
     </div>
 
     <script>
@@ -35,31 +43,69 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
 
-        // Fetch subjects from quizzes
-        const subjectSelect = document.getElementById('subject');
-
-        database.ref('quizzes').once('value').then(snapshot => {
-            const subjects = new Set(); // Using a Set to get unique subjects
-            snapshot.forEach(childSnapshot => {
-                const quizData = childSnapshot.val();
-                if (quizData.subjectName) {
-                    subjects.add(quizData.subjectName);
-                }
-            });
-            subjects.forEach(subject => {
-                const option = document.createElement('option');
-                option.value = subject;
-                option.textContent = subject;
-                subjectSelect.appendChild(option);
-            });
+        // Check authentication state
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('userEmail').innerText = user.email;
+                document.getElementById('userInfo').style.display = 'block';
+                fetchSubjects();
+                fetchAttemptedExams(user.uid);
+            } else {
+                alert('You need to log in to access this page.');
+                window.location.href = 'login.html'; // Redirect to login if not logged in
+            }
         });
 
+        // Fetch subjects from quizzes
+        function fetchSubjects() {
+            const subjectSelect = document.getElementById('subject');
+
+            database.ref('quizzes').once('value').then(snapshot => {
+                const subjects = new Set();
+                snapshot.forEach(childSnapshot => {
+                    const quizData = childSnapshot.val();
+                    if (quizData.subjectName) {
+                        subjects.add(quizData.subjectName);
+                    }
+                });
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                });
+            });
+        }
+
+        // Fetch attempted exams for the logged-in user
+        function fetchAttemptedExams(userId) {
+            const examList = document.getElementById('examList');
+            database.ref(`users/${userId}/exams`).once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examID = childSnapshot.val().examID;
+                    const examLink = document.createElement('div');
+                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID}</a>`;
+                    examList.appendChild(examLink);
+                });
+            });
+        }
+
+        // Generate quiz
         document.getElementById('generateBtn').onclick = function() {
             const subject = document.getElementById('subject').value;
             const numQuestions = document.getElementById('numQuestions').value;
             window.location.href = `play.html?subject=${subject}&numQuestions=${numQuestions}`;
+        };
+
+        // Logout functionality
+        document.getElementById('logoutBtn').onclick = function() {
+            auth.signOut().then(() => {
+                alert('Logged out successfully.');
+                window.location.href = 'login.html'; // Redirect to login page
+            });
         };
     </script>
 </body>

@@ -56,8 +56,9 @@
                             <div class="question-detail">
                                 <p><strong>${q.question}</strong></p>
                                 <p class="option ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
-                                    Your answer: ${q.options[examData.userAnswers[index] - 1]} 
+                                    Your answer: ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
                                     | Correct answer: ${q.options[q.correctAnswer - 1]}
+                                    <br><em>${q.explanation}</em>
                                 </p>
                             </div>
                         `).join('')}

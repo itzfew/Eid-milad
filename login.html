@@ -3,43 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Signup</title>
+    <title>User Login</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Login / Signup</h1>
-        <div id="authForm">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button id="loginBtn">Login</button>
-            <button id="signupBtn">Signup</button>
-        </div>
-        <div id="message" class="message"></div>
+        <h1>User Login</h1>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button id="loginBtn">Login</button>
+        <button id="signupBtn">Sign Up</button>
+        <div id="message"></div>
     </div>
 
     <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
-  authDomain: "quizes-3028d.firebaseapp.com",
-  databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
-  projectId: "quizes-3028d",
-  storageBucket: "quizes-3028d.appspot.com",
-  messagingSenderId: "624591251031",
-  appId: "1:624591251031:web:e093472f24fdeb29fc2512",
-  measurementId: "G-QMZK5Y6769"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        
+        const auth = firebase.auth();
+        const database = firebase.database();
+
         document.getElementById('loginBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            firebase.auth().signInWithEmailAndPassword(email, password)
+            auth.signInWithEmailAndPassword(email, password)
                 .then(() => {
                     window.location.href = 'index.html';
                 })
@@ -51,7 +50,7 @@ const firebaseConfig = {
         document.getElementById('signupBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            firebase.auth().createUserWithEmailAndPassword(email, password)
+            auth.createUserWithEmailAndPassword(email, password)
                 .then(() => {
                     window.location.href = 'index.html';
                 })

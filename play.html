@@ -8,13 +8,15 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container quiz-container">
         <h1 id="quizSubject"></h1>
         <form id="quizForm"></form>
         <button id="submitBtn">Submit Answers</button>
         <div id="result" class="result"></div>
+        <canvas id="scoreChart" width="400" height="200"></canvas>
     </div>
 
     <script>
@@ -54,12 +56,21 @@
                 }
             });
 
-            // Shuffle and select questions
             const selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
+            createQuizForm(selectedQuestions);
 
-            // Create quiz form
+            document.getElementById('submitBtn').onclick = function(event) {
+                event.preventDefault();
+                const userAnswers = getUserAnswers(selectedQuestions);
+                const { score, correctCount, incorrectCount, missedCount } = calculateResults(selectedQuestions, userAnswers);
+                saveQuiz(selectedQuestions, userAnswers, score);
+                displayResult(score, correctCount, incorrectCount, missedCount, selectedQuestions.length);
+            };
+        });
+
+        function createQuizForm(questions) {
             const quizForm = document.getElementById('quizForm');
-            selectedQuestions.forEach((q, index) => {
+            questions.forEach((q, index) => {
                 const questionDiv = document.createElement('div');
                 questionDiv.classList.add('question-container');
                 questionDiv.innerHTML = `
@@ -72,14 +83,7 @@
                 `;
                 quizForm.appendChild(questionDiv);
             });
-
-            document.getElementById('submitBtn').onclick = function(event) {
-                event.preventDefault();
-                const userAnswers = getUserAnswers(selectedQuestions);
-                const score = calculateResults(selectedQuestions);
-                saveQuiz(selectedQuestions, userAnswers, score);
-            };
-        });
+        }
 
         function getUserAnswers(questions) {
             return questions.map((q, index) => {
@@ -88,32 +92,33 @@
             });
         }
 
-        function calculateResults(questions) {
-            let score = 0;
+        function calculateResults(questions, userAnswers) {
+            let score = 0, correctCount = 0, incorrectCount = 0, missedCount = 0;
             questions.forEach((q, index) => {
-                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
-                if (selectedOption && parseInt(selectedOption.value) === q.answer) {
-                    score++;
+                if (userAnswers[index] === q.answer) {
+                    score += 4; // Correct answer
+                    correctCount++;
+                } else if (userAnswers[index] === null) {
+                    missedCount++; // Missed question
+                } else {
+                    score -= 1; // Incorrect answer
+                    incorrectCount++;
                 }
             });
-            document.getElementById('result').innerText = `Your score: ${score} out of ${questions.length}`;
-            return score;
+            return { score, correctCount, incorrectCount, missedCount };
         }
 
         function saveQuiz(questions, userAnswers, score) {
-            const user = auth.currentUser;
-            const date = new Date();
-            const dateString = date.toISOString().split('T')[0];
-            const timeStamp = date.getTime();
-            const examID = `${dateString}-quiz-${timeStamp}`;
+            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const examID = `${date}-quiz-${Date.now()}`;
+            const userId = auth.currentUser.uid;
 
             const examData = {
-                examID,
                 subject,
-                date: dateString,
+                date,
                 score,
-                email: user.email,
                 userAnswers,
+                email: auth.currentUser.email,
                 questions: questions.map(q => ({
                     id: q.id,
                     question: q.question,
@@ -122,13 +127,48 @@
                 }))
             };
 
-            database.ref(`users/${user.uid}/exams/${examID}`).set(examData)
+            database.ref(`users/${userId}/exams/${examID}`).set(examData)
                 .then(() => {
-                    alert(`Quiz saved successfully! You can replay it using the ID: ${examID}`);
+                    alert(`Quiz saved successfully! You can view your results.`);
                 })
                 .catch(error => {
                     console.error('Error saving quiz:', error);
                 });
+        }
+
+        function displayResult(score, correctCount, incorrectCount, missedCount, totalQuestions) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h2>Your Results</h2>
+                <p>Score: ${score}</p>
+                <p>Correct Answers: ${correctCount}</p>
+                <p>Incorrect Answers: ${incorrectCount}</p>
+                <p>Missed Questions: ${missedCount}</p>
+                <p>Percentage: ${(score / (totalQuestions * 4) * 100).toFixed(2)}%</p>
+            `;
+            displayChart(correctCount, incorrectCount, missedCount);
+        }
+
+        function displayChart(correct, incorrect, missed) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct', 'Incorrect', 'Missed'],
+                    datasets: [{
+                        label: 'Results',
+                        data: [correct, incorrect, missed],
+                        backgroundColor: ['green', 'red', 'orange'],
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>

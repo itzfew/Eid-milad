@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container detail-container">
         <h1>Exam Details</h1>
         <div id="examDetails"></div>
     </div>
@@ -53,9 +53,12 @@
                         <p>Email: ${examData.email}</p>
                         <h3>Your Answers:</h3>
                         ${examData.questions.map((q, index) => `
-                            <div>
-                                <p>${q.question}</p>
-                                <p>Your answer: ${q.options[examData.userAnswers[index] - 1]} | Correct answer: ${q.options[q.correctAnswer - 1]}</p>
+                            <div class="question-detail">
+                                <p><strong>${q.question}</strong></p>
+                                <p class="option ${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                                    Your answer: ${q.options[examData.userAnswers[index] - 1]} 
+                                    | Correct answer: ${q.options[q.correctAnswer - 1]}
+                                </p>
                             </div>
                         `).join('')}
                     `;

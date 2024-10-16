@@ -74,10 +74,14 @@
                 snapshot.forEach(childSnapshot => {
                     const { examID, date, score } = childSnapshot.val();
                     const examLink = document.createElement('div');
-                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score}</a>`;
+                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score} | <button onclick="viewResult('${examID}')">View Result</button></a>`;
                     examList.appendChild(examLink);
                 });
             });
+        }
+
+        function viewResult(examID) {
+            window.location.href = `detail.html?examID=${examID}`;
         }
 
         document.getElementById('generateBtn').onclick = function() {

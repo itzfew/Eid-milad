@@ -10,7 +10,94 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS styles as before */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .question-container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            display: none;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            width: 80vw;
+            margin-top: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .detail-button {
+            background-color: #007bff;
+        }
+
+        .detail-button:hover {
+            background-color: #0056b3;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -179,7 +266,8 @@
 
             const date = new Date();
             const dateString = date.toISOString().split('T')[0];
-            examID = `${dateString}-quiz-${Date.now()}`; // Store the exam ID
+            const timeStamp = date.getTime();
+            examID = `${dateString}-quiz-${timeStamp}`;
 
             const examData = {
                 examID,
@@ -207,8 +295,7 @@
         }
 
         document.getElementById('viewDetailBtn').onclick = function() {
-            // Redirect to detail.html with the examID and other results
-            window.location.href = `detail.html?examID=${examID}&subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${selectedQuestions.length}`;
+            window.location.href = `detail.html?examID=${examID}`;
         };
     </script>
 </body>

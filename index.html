@@ -5,25 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Selection</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .profile {
+            background-color: #e2e2e2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            max-width: 500px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            max-width: 500px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        h2 {
+            margin-top: 20px;
+            color: #333;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .exam-list {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .exam-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .exam-item:last-child {
+            border-bottom: none;
+        }
+
+        .exam-item a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .exam-item button {
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .exam-item button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile" id="profile"></div>
+    <h1>Select Quiz</h1>
+    <label for="subject">Select Subject:</label>
+    <select id="subject"></select>
+
+    <label for="numQuestions">Number of Questions:</label>
+    <input type="number" id="numQuestions" min="1" max="10" value="5">
+
+    <button id="generateBtn">Generate Quiz</button>
+
+    <h2>Your Attempted Exams</h2>
+    <div class="exam-list" id="examList"></div>
+
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Select Quiz</h1>
-        <label for="subject">Select Subject:</label>
-        <select id="subject"></select>
-
-        <label for="numQuestions">Number of Questions:</label>
-        <input type="number" id="numQuestions" min="1" max="10" value="5">
-
-        <button id="generateBtn">Generate Quiz</button>
-
-        <h2>Your Attempted Exams</h2>
-        <div id="examList"></div>
-    </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
@@ -42,6 +147,7 @@
 
         auth.onAuthStateChanged(user => {
             if (user) {
+                document.getElementById('profile').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
                 fetchAttemptedExams(user.uid);
                 fetchSubjects();
             } else {
@@ -73,9 +179,10 @@
             database.ref(`users/${userId}/exams`).once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     const { examID, date, score } = childSnapshot.val();
-                    const examLink = document.createElement('div');
-                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score} | <button onclick="viewResult('${examID}')">View Result</button></a>`;
-                    examList.appendChild(examLink);
+                    const examItem = document.createElement('div');
+                    examItem.className = 'exam-item';
+                    examItem.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score}</a> <button onclick="viewResult('${examID}')">View Result</button>`;
+                    examList.appendChild(examItem);
                 });
             });
         }

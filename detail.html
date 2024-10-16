@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f0f8ff;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -21,36 +21,31 @@
             margin-bottom: 20px;
         }
 
-        .details {
+        .result-container {
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 20px;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
 
-        .question-container {
-            margin-bottom: 15px;
+        .question-detail {
+            margin: 10px 0;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            background-color: #fafafa;
+            background-color: #f9f9f9;
         }
 
         .correct {
-            border-left: 5px solid #28a745;
+            color: green;
         }
 
         .incorrect {
-            border-left: 5px solid #dc3545;
-        }
-
-        .explanation {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
+            color: red;
         }
 
         button {
@@ -68,62 +63,79 @@
             background-color: #0056b3;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
-    <h1>Quiz Details</h1>
-    <div class="details" id="quizDetails"></div>
-    <button onclick="window.history.back()">Back to Results</button>
+    <h1>Quiz Detail Results</h1>
+    <div id="resultContainer" class="result-container"></div>
+    <button onclick="window.location.href='quiz_play.html?subject=' + subject">Take Another Quiz</button>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
         const urlParams = new URLSearchParams(window.location.search);
         const subject = urlParams.get('subject');
-        const score = urlParams.get('score');
+        const score = parseInt(urlParams.get('score'));
         const correct = parseInt(urlParams.get('correct'));
         const incorrect = parseInt(urlParams.get('incorrect'));
         const missed = parseInt(urlParams.get('missed'));
         const total = parseInt(urlParams.get('total'));
 
-        document.getElementById('quizDetails').innerHTML = `
-            <h2>Subject: ${subject}</h2>
+        document.getElementById('resultContainer').innerHTML = `
+            <h2>Your Results for ${subject}</h2>
             <p>Total Questions: ${total}</p>
-            <p>Score: ${score}</p>
-            <p>Correct: ${correct}</p>
-            <p>Incorrect: ${incorrect}</p>
+            <p>Correct: <span class="correct">${correct}</span></p>
+            <p>Incorrect: <span class="incorrect">${incorrect}</span></p>
             <p>Missed: ${missed}</p>
-            <hr>
+            <p>Total Score: ${score} out of ${total} (${((correct / total) * 100).toFixed(2)}%)</p>
         `;
 
-        // Mock data - replace with actual data retrieval from Firebase or other sources
-        const questions = [
-            {
-                question: "What is the capital of France?",
-                options: ["Berlin", "Madrid", "Paris", "Lisbon"],
-                correctAnswer: 3,
-                selectedAnswer: 3,
-                explanation: "Paris is the capital of France."
-            },
-            {
-                question: "What is 2 + 2?",
-                options: ["3", "4", "5", "6"],
-                correctAnswer: 2,
-                selectedAnswer: 1,
-                explanation: "2 + 2 equals 4."
-            }
-            // Add more questions as needed
-        ];
+        // Fetch detailed results from Firebase
+        const user = firebase.auth().currentUser;
+        if (user) {
+            const userId = user.uid;
 
-        questions.forEach((q, index) => {
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'question-container';
-            questionDiv.classList.add(q.selectedAnswer === q.correctAnswer ? 'correct' : 'incorrect');
-            questionDiv.innerHTML = `
-                <h3>Question ${index + 1}: ${q.question}</h3>
-                <p>Your answer: ${q.options[q.selectedAnswer - 1]} (${q.selectedAnswer})</p>
-                <p>Correct answer: ${q.options[q.correctAnswer - 1]} (${q.correctAnswer})</p>
-                <p class="explanation">Explanation: ${q.explanation}</p>
-            `;
-            document.getElementById('quizDetails').appendChild(questionDiv);
-        });
+            // Fetch the exam data for the current user
+            firebase.database().ref(`users/${userId}/exams`).once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examData = childSnapshot.val();
+                    // Match the subject to display relevant exam details
+                    if (examData.subject === subject) {
+                        displayDetailedResults(examData);
+                    }
+                });
+            });
+        }
+
+        function displayDetailedResults(examData) {
+            const resultContainer = document.getElementById('resultContainer');
+            examData.questions.forEach((q, index) => {
+                const userAnswer = examData.userAnswers[index];
+                const isCorrect = userAnswer === q.correctAnswer;
+                resultContainer.innerHTML += `
+                    <div class="question-detail">
+                        <h4>Question ${index + 1}: ${q.question}</h4>
+                        <p>Your Answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${q.options[userAnswer - 1]}</span></p>
+                        <p>Correct Answer: <span class="correct">${q.options[q.correctAnswer - 1]}</span></p>
+                        <p>Explanation: ${q.explanation}</p>
+                    </div>
+                `;
+            });
+        }
     </script>
 </body>
 </html>

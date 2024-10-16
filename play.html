@@ -138,6 +138,7 @@
             measurementId: "G-QMZK5Y6769"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
@@ -192,21 +193,16 @@
         });
 
         function getUserAnswers(questions) {
-            return questions.map((q, index) => {
+            return questions.map((_, index) => {
                 const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
                 return selectedOption ? parseInt(selectedOption.value) : null;
             });
         }
 
         function calculateResults(questions, userAnswers) {
-            let score = 0;
-            questions.forEach((q, index) => {
-                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
-                if (selectedOption && parseInt(selectedOption.value) === q.answer) {
-                    score++;
-                }
-            });
-            return score;
+            return questions.reduce((score, q, index) => {
+                return score + (userAnswers[index] === q.answer ? 1 : 0);
+            }, 0);
         }
 
         function showResults(questions, userAnswers, score) {
@@ -227,19 +223,18 @@
             // Show chart
             displayChart(correct, incorrect, missed);
 
-            // Automatically save quiz results to Firebase
+            // Save quiz results to Firebase
             saveQuiz(questions, userAnswers, score);
 
-            // Hide questions
+            // Hide questions and show results
             document.getElementById('quizForm').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'none';
-
             document.getElementById('result').style.display = 'block';
         }
 
         function displayChart(correct, incorrect, missed) {
             const ctx = document.getElementById('resultChart').getContext('2d');
-            const chart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Correct', 'Incorrect', 'Missed'],
@@ -307,6 +302,14 @@
         }
 
         function showDetail() {
+            const total = document.getElementById('quizForm').children.length;
+            const correct = Array.from(document.querySelectorAll('input[type="radio"]:checked')).filter((input, index) => {
+                const questionIndex = Number(input.name.replace('question', ''));
+                return parseInt(input.value) === questions[questionIndex].answer;
+            }).length;
+            const incorrect = total - correct;
+            const missed = total - (correct + incorrect);
+
             window.location.href = `detail.html?subject=${subject}&score=${score}&correct=${correct}&incorrect=${incorrect}&missed=${missed}&total=${total}`;
         }
     </script>

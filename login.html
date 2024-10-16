@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -27,11 +28,17 @@
     </div>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            // Your Firebase config
-        };
-
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+  authDomain: "quizes-3028d.firebaseapp.com",
+  databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+  projectId: "quizes-3028d",
+  storageBucket: "quizes-3028d.appspot.com",
+  messagingSenderId: "624591251031",
+  appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+  measurementId: "G-QMZK5Y6769"
+};
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -58,6 +65,7 @@
         // Load attempted exams
         function loadUserExams(uid) {
             database.ref('users/' + uid + '/exams').once('value').then(snapshot => {
+                examsList.innerHTML = ''; // Clear existing list
                 snapshot.forEach(childSnapshot => {
                     const examData = childSnapshot.val();
                     const listItem = document.createElement('li');

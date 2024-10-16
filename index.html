@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
-    <div class="container quiz-container">
+    <div class="container">
         <h1>Select Quiz</h1>
         <label for="subject">Select Subject:</label>
         <select id="subject"></select>
@@ -21,7 +21,7 @@
         <button id="generateBtn">Generate Quiz</button>
 
         <h2>Your Attempted Exams</h2>
-        <div id="examList" class="exam-list"></div>
+        <div id="examList"></div>
     </div>
 
     <script>
@@ -71,15 +71,17 @@
         function fetchAttemptedExams(userId) {
             const examList = document.getElementById('examList');
             database.ref(`users/${userId}/exams`).once('value').then(snapshot => {
-                examList.innerHTML = ''; // Clear previous list
                 snapshot.forEach(childSnapshot => {
                     const { examID, date, score } = childSnapshot.val();
                     const examLink = document.createElement('div');
-                    examLink.classList.add('exam-item');
-                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score}</a>`;
+                    examLink.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score} | <button onclick="viewResult('${examID}')">View Result</button></a>`;
                     examList.appendChild(examLink);
                 });
             });
+        }
+
+        function viewResult(examID) {
+            window.location.href = `detail.html?examID=${examID}`;
         }
 
         document.getElementById('generateBtn').onclick = function() {

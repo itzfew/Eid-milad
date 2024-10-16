@@ -48,7 +48,8 @@
                     questions.push({
                         question: quizData.question,
                         options: quizData.options,
-                        answer: parseInt(quizData.correctOption) // Store the correct answer as a number
+                        answer: parseInt(quizData.correctOption), // Store the correct answer as a number
+                        id: childSnapshot.key // Store question ID for later reference
                     });
                 }
             });
@@ -73,7 +74,8 @@
 
             document.getElementById('submitBtn').onclick = function(event) {
                 event.preventDefault();
-                calculateResults(selectedQuestions);
+                const score = calculateResults(selectedQuestions);
+                saveQuiz(selectedQuestions, score);
             };
         });
 
@@ -86,6 +88,35 @@
                 }
             });
             document.getElementById('result').innerText = `Your score: ${score} out of ${questions.length}`;
+            return score;
+        }
+
+        function saveQuiz(questions, score) {
+            const date = new Date();
+            const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            const timeStamp = date.getTime(); // Unique timestamp
+            const examID = `${dateString}-quiz-${timeStamp}`; // Unique exam identifier
+
+            const examData = {
+                subject,
+                date: dateString,
+                score,
+                questions: questions.map(q => ({
+                    id: q.id,
+                    question: q.question,
+                    options: q.options,
+                    correctAnswer: q.answer
+                }))
+            };
+
+            database.ref('generatedQuizzes/' + examID).set(examData)
+                .then(() => {
+                    alert(`Quiz saved successfully! You can replay it using the ID: ${examID}`);
+                    // Optionally, redirect to a replay page or display the link
+                })
+                .catch(error => {
+                    console.error('Error saving quiz:', error);
+                });
         }
     </script>
 </body>

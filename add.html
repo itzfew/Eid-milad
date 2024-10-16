@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            margin-bottom: 20px;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            border-color: #007BFF;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #357ABD;
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success {
+            color: #28a745;
+        }
+        .status.error {
+            color: #dc3545;
+        }
+        .loading {
+            display: none;
+        }
+        .question-set {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .remove-btn {
+            background: #dc3545;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Quiz</h1>
+        <div id="questionContainer"></div>
+        <button onclick="addQuestionSet()">Add Question Set</button>
+        <button onclick="addQuiz()">Add Quiz</button>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function addQuestionSet() {
+            const questionSet = document.createElement('div');
+            questionSet.className = 'question-set';
+            questionSet.innerHTML = `
+                <input type="text" placeholder="Subject Name" required aria-label="Subject Name">
+                <textarea placeholder="Enter your question" required aria-label="Quiz Question"></textarea>
+                <input type="text" placeholder="Option 1" required aria-label="Option 1">
+                <input type="text" placeholder="Option 2" required aria-label="Option 2">
+                <input type="text" placeholder="Option 3" required aria-label="Option 3">
+                <input type="text" placeholder="Option 4" required aria-label="Option 4">
+                <input type="number" placeholder="Correct Option (1-4)" min="1" max="4" required aria-label="Correct Option">
+                <textarea placeholder="Enter explanation for the correct answer" required aria-label="Quiz Explanation"></textarea>
+                <button class="remove-btn" onclick="removeQuestionSet(this)">Remove Question Set</button>
+            `;
+            document.getElementById('questionContainer').appendChild(questionSet);
+        }
+
+        function removeQuestionSet(button) {
+            button.parentElement.remove();
+        }
+
+        function addQuiz() {
+            const questionSets = document.querySelectorAll('.question-set');
+            let allValid = true;
+            const quizzes = [];
+
+            questionSets.forEach(set => {
+                const subjectName = set.querySelector('input[type="text"]').value.trim();
+                const question = set.querySelector('textarea').value.trim();
+                const options = [
+                    set.querySelectorAll('input[type="text"]')[0].value.trim(),
+                    set.querySelectorAll('input[type="text"]')[1].value.trim(),
+                    set.querySelectorAll('input[type="text"]')[2].value.trim(),
+                    set.querySelectorAll('input[type="text"]')[3].value.trim(),
+                ];
+                const correctOption = set.querySelector('input[type="number"]').value;
+                const explanation = set.querySelectorAll('textarea')[1].value.trim();
+                const date = new Date().toLocaleString();
+
+                if (!subjectName || !question || options.some(opt => opt === '') || !correctOption || !explanation) {
+                    allValid = false;
+                }
+                if (correctOption < 1 || correctOption > 4) {
+                    allValid = false;
+                }
+
+                if (allValid) {
+                    quizzes.push({ subjectName, question, options, correctOption, explanation, date });
+                }
+            });
+
+            if (!allValid) {
+                showStatus('Please fill out all fields correctly.', false);
+                return;
+            }
+
+            showLoading(true);
+
+            const promises = quizzes.map(quizData => {
+                return database.ref('quizzes').push(quizData);
+            });
+
+            Promise.all(promises)
+                .then(() => {
+                    showStatus('Quizzes added successfully!', true);
+                    clearFields();
+                })
+                .catch(error => {
+                    showStatus(`Error: ${error.message}`, false);
+                })
+                .finally(() => {
+                    showLoading(false);
+                });
+        }
+
+        function clearFields() {
+            document.getElementById('questionContainer').innerHTML = '';
+        }
+
+        function showStatus(message, isSuccess) {
+            const statusElement = document.getElementById('status');
+            statusElement.innerText = message;
+            statusElement.classList.toggle('success', isSuccess);
+            statusElement.classList.toggle('error', !isSuccess);
+            setTimeout(() => { statusElement.innerText = ''; }, 3000);
+        }
+
+        function showLoading(isLoading) {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.innerText !== 'Add Question Set') {
+                    btn.disabled = isLoading;
+                    btn.innerText = isLoading ? 'Adding...' : 'Add Quiz';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -7,24 +7,17 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1 id="authTitle">Login</h1>
-        <div id="userInfo" style="display:none;">
-            <p>Welcome, <span id="userEmail"></span></p>
-            <button id="logoutBtn">Logout</button>
-            <h2>Your Attempted Exams</h2>
-            <ul id="examsList"></ul>
-        </div>
-        
+        <h1>Login / Signup</h1>
         <div id="authForm">
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button id="loginBtn">Login</button>
             <button id="signupBtn">Signup</button>
         </div>
+        <div id="message" class="message"></div>
     </div>
 
     <script>
@@ -39,72 +32,33 @@ const firebaseConfig = {
   appId: "1:624591251031:web:e093472f24fdeb29fc2512",
   measurementId: "G-QMZK5Y6769"
 };
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-
-        const userInfo = document.getElementById('userInfo');
-        const authForm = document.getElementById('authForm');
-        const userEmail = document.getElementById('userEmail');
-        const examsList = document.getElementById('examsList');
-
-        // Check authentication state
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                userEmail.innerText = user.email;
-                userInfo.style.display = 'block';
-                authForm.style.display = 'none';
-                loadUserExams(user.uid);
-            } else {
-                userInfo.style.display = 'none';
-                authForm.style.display = 'block';
-            }
-        });
-
-        // Load attempted exams
-        function loadUserExams(uid) {
-            database.ref('users/' + uid + '/exams').once('value').then(snapshot => {
-                examsList.innerHTML = ''; // Clear existing list
-                snapshot.forEach(childSnapshot => {
-                    const examData = childSnapshot.val();
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `
-                        Exam ID: ${examData.examID} 
-                        <button onclick="viewExamDetail('${examData.examID}')">View Result</button>
-                    `;
-                    examsList.appendChild(listItem);
-                });
-            });
-        }
-
-        // Login
+        
         document.getElementById('loginBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, password).catch(error => {
-                alert(error.message);
-            });
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    window.location.href = 'index.html';
+                })
+                .catch(error => {
+                    document.getElementById('message').innerText = error.message;
+                });
         };
 
-        // Signup
         document.getElementById('signupBtn').onclick = function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            auth.createUserWithEmailAndPassword(email, password).catch(error => {
-                alert(error.message);
-            });
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then(() => {
+                    window.location.href = 'index.html';
+                })
+                .catch(error => {
+                    document.getElementById('message').innerText = error.message;
+                });
         };
-
-        // Logout
-        document.getElementById('logoutBtn').onclick = function() {
-            auth.signOut();
-        };
-
-        // View Exam Detail
-        function viewExamDetail(examID) {
-            window.location.href = `detail.html?examID=${examID}`;
-        }
     </script>
 </body>
 </html>

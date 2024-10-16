@@ -50,11 +50,12 @@
                         <h2>Subject: ${examData.subject}</h2>
                         <p>Date: ${examData.date}</p>
                         <p>Score: ${examData.score}</p>
+                        <p>Email: ${examData.email}</p>
                         <h3>Your Answers:</h3>
-                        ${examData.questions.map(q => `
+                        ${examData.questions.map((q, index) => `
                             <div>
                                 <p>${q.question}</p>
-                                <p>Your answer: ${q.options[q.userAnswers[q.id]]} | Correct answer: ${q.options[q.correctAnswer - 1]}</p>
+                                <p>Your answer: ${q.options[examData.userAnswers[index] - 1]} | Correct answer: ${q.options[q.correctAnswer - 1]}</p>
                             </div>
                         `).join('')}
                     `;

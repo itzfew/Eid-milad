@@ -26,11 +26,10 @@
             margin-bottom: 20px;
         }
 
-        .quiz-container {
+        .quiz-container, .math-container {
             background-color: #fff;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
 
@@ -142,6 +141,7 @@
     </div>
 
     <h1 id="quizSubject"></h1>
+    
     <div class="quiz-container">
         <form id="quizForm"></form>
         <button id="submitBtn">Submit Answers</button>
@@ -150,6 +150,13 @@
             <p id="resultSummary"></p>
             <button id="viewDetailBtn" style="display: none;">View Details</button>
         </div>
+    </div>
+
+    <div class="math-container">
+        <h2>Math Expression Converter</h2>
+        <input type="text" id="mathInput" placeholder="Enter a math expression">
+        <button onclick="convertMath()">Convert</button>
+        <div id="mathOutput"></div>
     </div>
 
     <footer id="footer"></footer>
@@ -166,19 +173,9 @@
             measurementId: "G-QMZK5Y6769"
         };
 
-                firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
-
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('footer').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
-                fetchAttemptedExams(user.uid);
-                fetchSubjects();
-            } else {
-                window.location.href = 'login.html';
-            }
-        });
 
         const urlParams = new URLSearchParams(window.location.search);
         const subject = urlParams.get('subject');
@@ -319,7 +316,29 @@
             }).catch(console.error);
         }
 
-        
+        function convertMath() {
+            const input = document.getElementById('mathInput').value;
+            const outputDiv = document.getElementById('mathOutput');
+
+            // Basic parsing for certain patterns
+            let converted = input
+                .replace(/\bvec\((.*?)\)/g, '<span style="text-decoration:underline;">$1</span>') // Vector
+                .replace(/\bbar\((.*?)\)/g, '<span style="text-decoration:overline;">$1</span>') // Bar
+                .replace(/\bsup\((.*?)\)/g, '<sup>$1</sup>') // Superscript
+                .replace(/\bsub\((.*?)\)/g, '<sub>$1</sub>') // Subscript
+                .replace(/\bdot\((.*?)\)/g, '<span>&#183;$1</span>') // Dot
+                .replace(/\bddot\((.*?)\)/g, '<span>&#9701;$1</span>') // Ddot
+                .replace(/\bhat\((.*?)\)/g, '<span style="text-decoration:overline;">$1</span>') // Hat
+                .replace(/\btilde\((.*?)\)/g, '<span style="text-decoration:line-through;">$1</span>') // Tilde
+                .replace(/\babove\((.*?)\s*,\s*(.*?)\)/g, '<span style="display: block;">$1<br>$2</span>') // Above
+                .replace(/\bbelow\((.*?)\s*,\s*(.*?)\)/g, '<span style="display: block;">$2<br>$1</span>'); // Below
+
+            outputDiv.innerHTML = converted || 'Please enter a valid expression.';
+        }
+
+        document.getElementById('footer').innerHTML = `
+            <p>&copy; 2024 Quiz App | <a href="https://yourprivacyurl.com" target="_blank">Privacy Policy</a></p>
+        `;
     </script>
 </body>
 </html>

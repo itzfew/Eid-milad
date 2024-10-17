@@ -11,40 +11,21 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 20px;
             text-align: center;
         }
 
-        .quiz-content {
-            background-color: #ffffff;
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-        }
-
         .question {
-            margin-bottom: 15px;
+            margin: 15px 0;
         }
 
         label {
             display: block;
             margin: 10px 0;
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        input[type="radio"] {
-            margin-right: 10px;
         }
 
         button {
@@ -63,67 +44,27 @@
         }
 
         .result {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #ffffff;
-            width: 100%;
-            max-width: 600px;
             display: none;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 40vh;
-            width: 100%;
-            max-width: 600px;
             margin-top: 20px;
-        }
-
-        .button-container {
-            margin-top: 20px;
-        }
-
-        .detail-button {
-            background-color: #007bff;
-        }
-
-        .detail-button:hover {
-            background-color: #0056b3;
         }
 
         .correct {
             color: green;
-            font-weight: bold;
         }
 
         .incorrect {
             color: red;
-            font-weight: bold;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            button {
-                width: 100%;
-            }
         }
     </style>
 </head>
 <body>
     <h1 id="quizSubject"></h1>
-    <div class="quiz-content" id="quizForm"></div>
+    <form id="quizForm"></form>
     <button id="submitBtn">Submit Answers</button>
     <div id="result" class="result">
         <h2>Your Results</h2>
         <p id="resultSummary"></p>
-        <div class="chart-container">
-            <canvas id="resultChart"></canvas>
-        </div>
-        <div class="button-container">
-            <button class="detail-button" id="viewDetailBtn" style="display: none;">View Details</button>
-        </div>
+        <button id="viewDetailBtn" style="display: none;">View Details</button>
     </div>
 
     <script>
@@ -138,7 +79,6 @@
             measurementId: "G-QMZK5Y6769"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
@@ -152,7 +92,6 @@
 
         document.getElementById('quizSubject').innerText = `Subject: ${subject}`;
 
-        // Fetch questions for the selected subject
         database.ref('quizzes').once('value').then(snapshot => {
             const questions = [];
             snapshot.forEach(childSnapshot => {
@@ -168,22 +107,18 @@
                 }
             });
 
-            // Shuffle and select questions
             selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
 
-            // Create quiz form
             const quizForm = document.getElementById('quizForm');
             selectedQuestions.forEach((q, index) => {
                 quizForm.innerHTML += `
                     <div class="question">
-                        <h3>${index + 1}. ${q.question}</h3>
-                        <div class="options">
-                            ${q.options.map((opt, i) => `
-                                <label>
-                                    <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
-                                </label>
-                            `).join('')}
-                        </div>
+                        <strong>${index + 1}. ${q.question}</strong>
+                        ${q.options.map((opt, i) => `
+                            <label>
+                                <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
+                            </label>
+                        `).join('')}
                     </div>
                 `;
             });
@@ -224,41 +159,12 @@
                 <p>Total Score: ${score} out of ${total} (${percentage}%)</p>
             `;
 
-            // Show chart
-            displayChart(correct, incorrect, missed);
-
-            // Save quiz results to Firebase
             saveQuiz(questions, userAnswers, score);
 
-            // Hide questions and show results
             document.getElementById('quizForm').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('result').style.display = 'block';
             document.getElementById('viewDetailBtn').style.display = 'inline';
-        }
-
-        function displayChart(correct, incorrect, missed) {
-            const ctx = document.getElementById('resultChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Correct', 'Incorrect', 'Missed'],
-                    datasets: [{
-                        label: 'Number of Answers',
-                        data: [correct, incorrect, missed],
-                        backgroundColor: ['#4CAF50', '#F44336', '#FF9800'],
-                        borderColor: ['#388E3C', '#D32F2F', '#F57C00'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
         }
 
         function saveQuiz(questions, userAnswers, score) {
@@ -276,28 +182,31 @@
             const examData = {
                 examID,
                 subject,
-                questions: questions.map((q, index) => ({
-                    question: q.question,
-                    userAnswer: userAnswers[index],
-                    correctAnswer: q.answer
-                })),
-                score,
                 date: dateString,
-                userId: user.uid,
+                score,
+                email: user.email,
+                userAnswers,
+                questions: questions.map(q => ({
+                    id: q.id,
+                    question: q.question,
+                    options: q.options,
+                    correctAnswer: q.answer,
+                    explanation: q.explanation
+                }))
             };
 
-            database.ref('quizResults/' + examID).set(examData)
+            database.ref(`users/${user.uid}/exams/${examID}`).set(examData)
                 .then(() => {
-                    console.log("Quiz results saved successfully.");
+                    console.log(`Quiz saved successfully with ID: ${examID}`);
                 })
-                .catch((error) => {
-                    console.error("Error saving quiz results: ", error);
+                .catch(error => {
+                    console.error('Error saving quiz:', error);
                 });
-
-            document.getElementById('viewDetailBtn').onclick = function() {
-                window.location.href = `quizDetails.html?examID=${examID}`;
-            };
         }
+
+        document.getElementById('viewDetailBtn').onclick = function() {
+            window.location.href = `detail.html?examID=${examID}`;
+        };
     </script>
 </body>
 </html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Play</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #f0f8ff, #e6f2ff);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .question-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .question-container:hover {
+            transform: scale(1.02);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+
+        label:hover {
+            background-color: #e2e6ea;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            display: none;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .detail-button {
+            background-color: #007bff;
+        }
+
+        .detail-button:hover {
+            background-color: #0056b3;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="quizSubject"></h1>
+    <form id="quizForm"></form>
+    <button id="submitBtn">Submit Answers</button>
+    <div id="result" class="result">
+        <h2>Your Results</h2>
+        <p id="resultSummary"></p>
+        <div class="chart-container">
+            <canvas id="resultChart"></canvas>
+        </div>
+        <div class="button-container">
+            <button class="detail-button" id="viewDetailBtn" style="display: none;">View Details</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const subject = urlParams.get('subject');
+        const numQuestions = parseInt(urlParams.get('numQuestions'));
+        let selectedQuestions = [];
+        let examID = ""; // Variable to store the exam ID
+        let userAnswers = []; // Array to store user answers
+
+        document.getElementById('quizSubject').innerText = `Subject: ${subject}`;
+
+        // Fetch questions for the selected subject
+        database.ref('quizzes').once('value').then(snapshot => {
+            const questions = [];
+            snapshot.forEach(childSnapshot => {
+                const quizData = childSnapshot.val();
+                if (quizData.subjectName === subject) {
+                    questions.push({
+                        question: quizData.question,
+                        options: quizData.options,
+                        answer: parseInt(quizData.correctOption),
+                        explanation: quizData.explanation || "No explanation provided.",
+                        id: childSnapshot.key
+                    });
+                }
+            });
+
+            // Shuffle and select questions
+            selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
+
+            // Create quiz form
+            const quizForm = document.getElementById('quizForm');
+            selectedQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-container');
+                questionDiv.innerHTML = `
+                    <h3>Question ${index + 1}: ${q.question}</h3>
+                    <div class="options">
+                        ${q.options.map((opt, i) => `
+                            <label>
+                                <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                quizForm.appendChild(questionDiv);
+            });
+
+            document.getElementById('submitBtn').onclick = function(event) {
+                event.preventDefault();
+                userAnswers = getUserAnswers(selectedQuestions);
+                const score = calculateResults(selectedQuestions, userAnswers);
+                showResults(selectedQuestions, userAnswers, score);
+            };
+        });
+
+        function getUserAnswers(questions) {
+            return questions.map((_, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                return selectedOption ? parseInt(selectedOption.value) : null;
+            });
+        }
+
+        function calculateResults(questions, userAnswers) {
+            return questions.reduce((score, q, index) => {
+                return score + (userAnswers[index] === q.answer ? 1 : 0);
+            }, 0);
+        }
+
+        function showResults(questions, userAnswers, score) {
+            const total = questions.length;
+            const correct = questions.filter((q, index) => userAnswers[index] === q.answer).length;
+            const incorrect = total - correct;
+            const missed = userAnswers.filter(answer => answer === null).length;
+            const percentage = ((correct / total) * 100).toFixed(2);
+
+            document.getElementById('resultSummary').innerHTML = `
+                <p>Total Questions: ${total}</p>
+                <p>Correct: <span class="correct">${correct}</span></p>
+                <p>Incorrect: <span class="incorrect">${incorrect}</span></p>
+                <p>Missed: ${missed}</p>
+                <p>Total Score: ${score} out of ${total} (${percentage}%)</p>
+            `;
+
+            // Show chart
+            displayChart(correct, incorrect, missed);
+
+            // Save quiz results to Firebase
+            saveQuiz(questions, userAnswers, score);
+
+            // Hide questions and show results
+            document.getElementById('quizForm').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('viewDetailBtn').style.display = 'inline'; // Show the View Details button
+        }
+
+        function displayChart(correct, incorrect, missed) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct', 'Incorrect', 'Missed'],
+                    datasets: [{
+                        label: 'Results',
+                        data: [correct, incorrect, missed],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.7)',  // green for correct
+                            'rgba(220, 53, 69, 0.7)',  // red for incorrect
+                            'rgba(255, 193, 7, 0.7)'   // yellow for missed
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function saveQuiz(questions, userAnswers, score) {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("User not authenticated.");
+                return;
+            }
+
+            const date = new Date();
+            const dateString = date.toISOString().split('T')[0];
+            const timeStamp = date.getTime();
+            examID = `${dateString}-quiz-${timeStamp}`;
+
+            const examData = {
+                examID,
+                subject,
+                date: dateString,
+                score,
+                email: user.email,
+                userAnswers,
+                questions: questions.map(q => ({
+                    id: q.id,
+                    question: q.question,
+                    options: q.options,
+                    correctAnswer: q.answer,
+                    explanation: q.explanation
+                }))
+            };
+
+            database.ref(`users/${user.uid}/exams/${examID}`).set(examData)
+                .then(() => {
+                    console.log(`Quiz saved successfully with ID: ${examID}`);
+                })
+                .catch(error => {
+                    console.error('Error saving quiz:', error);
+                });
+        }
+
+        document.getElementById('viewDetailBtn').onclick = function() {
+            window.location.href = `detail.html?examID=${examID}`;
+        };
+    </script>
+</body>
+</html>

@@ -31,9 +31,24 @@
             max-width: 650px;
             margin: 15px 0;
             padding: 20px;
-            border: 1px solid #d1d1d1;
+            border: 2px solid #007bff;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            background-color: #f9f9f9;
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2em;
+            color: #007bff;
+            font-weight: bold;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            padding: 5px 10px;
+            background-color: rgba(0, 123, 255, 0.1);
         }
 
         label {
@@ -42,12 +57,12 @@
             padding: 12px;
             border: 1px solid #d1d1d1;
             border-radius: 8px;
-            background-color: #f9f9f9;
+            background-color: #ffffff;
             transition: background-color 0.3s;
         }
 
         label:hover {
-            background-color: #f1f1f1;
+            background-color: #e6f7ff;
         }
 
         button {
@@ -66,20 +81,12 @@
             background-color: #0056b3;
         }
 
-        .timer {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.2em;
-            color: #333;
-        }
-
         .result {
             margin-top: 20px;
             padding: 20px;
             border: 1px solid #d1d1d1;
             border-radius: 8px;
-            background-color: #fff;
+            background-color: #ffffff;
             width: 100%;
             max-width: 650px;
             text-align: left;
@@ -127,7 +134,6 @@
 </head>
 <body>
     <h1 id="quizSubject"></h1>
-    <div class="timer" id="timer">Time: <span id="time">00:00</span></div>
     <div id="quizForm"></div>
     <button id="nextBtn">Next Question</button>
     <button id="submitBtn" style="display: none;">Submit Answers</button>
@@ -166,10 +172,9 @@
         let userAnswers = [];
         let currentQuestionIndex = 0;
         let timerInterval;
-        let timeLeft = 300; // 5 minutes timer
+        let timeLeft = 60; // 1 minute timer
 
         document.getElementById('quizSubject').innerText = `Subject: ${subject}`;
-        document.getElementById('timer').innerText = `Time: ${formatTime(timeLeft)}`;
 
         // Fetch questions for the selected subject
         database.ref('quizzes').once('value').then(snapshot => {
@@ -190,16 +195,18 @@
             // Shuffle and select questions
             selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
             displayQuestion();
-            startTimer();
         });
 
         function displayQuestion() {
             const quizForm = document.getElementById('quizForm');
+            const question = selectedQuestions[currentQuestionIndex];
+
             quizForm.innerHTML = `
                 <div class="question-container">
-                    <h3>Question ${currentQuestionIndex + 1}: ${selectedQuestions[currentQuestionIndex].question}</h3>
+                    <div class="timer" id="timer">Time: <span id="time">01:00</span></div>
+                    <h3>Question ${currentQuestionIndex + 1}: ${question.question}</h3>
                     <div class="options">
-                        ${selectedQuestions[currentQuestionIndex].options.map((opt, i) => `
+                        ${question.options.map((opt, i) => `
                             <label>
                                 <input type="radio" name="question" value="${i + 1}"> ${opt}
                             </label>
@@ -211,16 +218,15 @@
             // Show/hide buttons
             document.getElementById('nextBtn').style.display = currentQuestionIndex < numQuestions - 1 ? 'inline' : 'none';
             document.getElementById('submitBtn').style.display = currentQuestionIndex === numQuestions - 1 ? 'inline' : 'none';
+
+            // Start timer for the current question
+            startTimer();
         }
 
         document.getElementById('nextBtn').onclick = function() {
             userAnswers[currentQuestionIndex] = getUserAnswer();
             currentQuestionIndex++;
-            if (currentQuestionIndex < numQuestions) {
-                displayQuestion();
-            } else {
-                showResults();
-            }
+            displayQuestion();
         };
 
         document.getElementById('submitBtn').onclick = function() {
@@ -255,11 +261,11 @@
             // Save quiz results to Firebase
             saveQuiz(selectedQuestions, userAnswers, correct);
 
-            // Show results
+            // Hide questions and show results
             document.getElementById('quizForm').style.display = 'none';
             document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('result').style.display = 'block';
-            document.getElementById('viewDetailBtn').style.display = 'inline'; // Show the View Details button
+            document.getElementById('viewDetailBtn').style.display = 'inline';
         }
 
         function displayChart(correct, incorrect, missed) {
@@ -342,10 +348,19 @@
         }
 
         function startTimer() {
+            timeLeft = 60; // Reset timer for each question
+            document.getElementById('time').innerText = formatTime(timeLeft);
+            clearInterval(timerInterval); // Clear previous timer
             timerInterval = setInterval(() => {
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    showResults();
+                    userAnswers[currentQuestionIndex] = getUserAnswer(); // Record answer
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < selectedQuestions.length) {
+                        displayQuestion();
+                    } else {
+                        showResults();
+                    }
                 } else {
                     timeLeft--;
                     document.getElementById('time').innerText = formatTime(timeLeft);

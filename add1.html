@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Quiz Questions</title>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: none;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            box-shadow: none;
+            border: none;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            background-color: #e0e0e0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            text-align: center;
+            color: #333;
+            padding: 10px;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Quiz Questions</h1>
+    <div class="form-container">
+        <label for="bulkQuestions">Common Subject (first line) and Bulk Questions (7 lines per question):</label>
+        <textarea id="bulkQuestions" rows="20" placeholder="Enter common subject, followed by questions, each set of 7 lines followed by a gap for the next question" required></textarea>
+        
+        <button id="submitBtn">Add Questions</button>
+    </div>
+
+    <footer class="footer" id="footer"></footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('footer').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        document.getElementById('submitBtn').onclick = function() {
+            const bulkInput = document.getElementById('bulkQuestions').value.trim();
+            const questionBlocks = bulkInput.split(/\n\s*\n/); // Split by double newlines
+
+            if (questionBlocks.length < 1) {
+                alert('Please enter at least one question.');
+                return;
+            }
+
+            const subjectName = questionBlocks[0].trim(); // First block is the subject
+
+            questionBlocks.slice(1).forEach(block => {
+                const questionLines = block.split('\n').map(line => line.trim()).filter(line => line); // Split and trim lines
+
+                if (questionLines.length < 7) return; // Ensure there are enough lines
+
+                const question = questionLines[0]; // The question itself
+                const options = questionLines.slice(1, 5); // The options
+                const correctOption = parseInt(questionLines[5].trim()); // Correct option index
+                const explanation = questionLines[6]; // Explanation
+
+                const quizData = {
+                    subjectName: subjectName,
+                    question: question,
+                    options: options,
+                    correctOption: correctOption,
+                    explanation: explanation,
+                    date: new Date().toISOString()
+                };
+
+                database.ref('quizzes').push(quizData)
+                    .then(() => {
+                        console.log('Quiz question added successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error adding quiz question:', error);
+                    });
+            });
+
+            alert('Bulk quiz questions added successfully!');
+            document.getElementById('bulkQuestions').value = ''; // Clear the textarea
+        };
+    </script>
+</body>
+</html>

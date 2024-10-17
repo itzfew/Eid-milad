@@ -10,9 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
+                        body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #f0f8ff, #e6f2ff);
+            background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -23,35 +23,25 @@
         h1 {
             color: #333;
             margin-bottom: 20px;
+            text-align: center;
         }
 
-        .question-container {
+        .quiz-content {
             background-color: #ffffff;
-            border-radius: 8px;
             padding: 20px;
-            margin: 15px 0;
             width: 100%;
             max-width: 600px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
         }
 
-        .question-container:hover {
-            transform: scale(1.02);
+        .question {
+            margin-bottom: 15px;
         }
 
         label {
             display: block;
             margin: 10px 0;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-            transition: background-color 0.2s;
-        }
-
-        label:hover {
-            background-color: #e2e6ea;
+            cursor: pointer;
         }
 
         input[type="radio"] {
@@ -61,13 +51,12 @@
         button {
             background-color: #007bff;
             color: white;
-            padding: 12px 20px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
-            transition: background-color 0.3s;
         }
 
         button:hover {
@@ -77,12 +66,9 @@
         .result {
             margin-top: 20px;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
+            background-color: #ffffff;
             width: 100%;
             max-width: 600px;
-            text-align: left;
             display: none;
         }
 
@@ -108,10 +94,12 @@
 
         .correct {
             color: green;
+            font-weight: bold;
         }
 
         .incorrect {
             color: red;
+            font-weight: bold;
         }
 
         @media (max-width: 600px) {

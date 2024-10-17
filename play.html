@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Play</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
@@ -28,7 +27,6 @@
 
         .quiz-content {
             background-color: #ffffff; /* White background */
-            border-radius: 10px;
             padding: 20px;
             width: 100%;
             max-width: 600px;
@@ -73,7 +71,6 @@
         .result {
             margin-top: 20px;
             padding: 20px;
-            border: 1px solid #ddd;
             border-radius: 10px;
             background-color: #ffffff; /* White background for results */
             width: 100%;
@@ -187,7 +184,7 @@
             const quizForm = document.getElementById('quizForm');
             selectedQuestions.forEach((q, index) => {
                 quizForm.innerHTML += `
-                    <h3>Question ${index + 1}: ${q.question}</h3>
+                    <h3>${index + 1}</h3>  <!-- Display only the question number -->
                     <div class="options">
                         ${q.options.map((opt, i) => `
                             <label>

@@ -13,19 +13,26 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
+            background-color: #f9f9f9;
         }
 
         h1 {
             text-align: center;
+            color: #333;
         }
 
         .question {
-            margin: 15px 0;
+            background-color: #ffffff;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         label {
             display: block;
-            margin: 10px 0;
+            margin: 5px 0;
+            cursor: pointer;
         }
 
         button {
@@ -33,10 +40,11 @@
             color: white;
             padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
+            transition: background-color 0.3s;
         }
 
         button:hover {
@@ -46,14 +54,20 @@
         .result {
             display: none;
             margin-top: 20px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .correct {
             color: green;
+            font-weight: bold;
         }
 
         .incorrect {
             color: red;
+            font-weight: bold;
         }
     </style>
 </head>

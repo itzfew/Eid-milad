@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Play</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
@@ -12,7 +11,7 @@
     <style>
         body {
             font-family: 'Helvetica Neue', sans-serif;
-            background: linear-gradient(to bottom, #e9f5ff, #f7fbff);
+            background-color: #ffffff;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -28,18 +27,13 @@
         }
 
         .question-container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 15px 0;
             width: 100%;
             max-width: 650px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transition: transform 0.2s;
-        }
-
-        .question-container:hover {
-            transform: scale(1.02);
+            margin: 15px 0;
+            padding: 20px;
+            border: 1px solid #d1d1d1;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         label {
@@ -49,16 +43,11 @@
             border: 1px solid #d1d1d1;
             border-radius: 8px;
             background-color: #f9f9f9;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s;
         }
 
         label:hover {
             background-color: #f1f1f1;
-            transform: translateY(-2px);
-        }
-
-        input[type="radio"] {
-            margin-right: 10px;
         }
 
         button {
@@ -70,12 +59,19 @@
             cursor: pointer;
             font-size: 18px;
             margin-top: 20px;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s;
         }
 
         button:hover {
             background-color: #0056b3;
-            transform: translateY(-2px);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2em;
+            color: #333;
         }
 
         .result {
@@ -131,8 +127,10 @@
 </head>
 <body>
     <h1 id="quizSubject"></h1>
-    <form id="quizForm"></form>
-    <button id="submitBtn">Submit Answers</button>
+    <div class="timer" id="timer">Time: <span id="time">00:00</span></div>
+    <div id="quizForm"></div>
+    <button id="nextBtn">Next Question</button>
+    <button id="submitBtn" style="display: none;">Submit Answers</button>
     <div id="result" class="result">
         <h2>Your Results</h2>
         <p id="resultSummary"></p>
@@ -165,10 +163,13 @@
         const subject = urlParams.get('subject');
         const numQuestions = parseInt(urlParams.get('numQuestions'));
         let selectedQuestions = [];
-        let examID = ""; // Variable to store the exam ID
-        let userAnswers = []; // Array to store user answers
+        let userAnswers = [];
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let timeLeft = 300; // 5 minutes timer
 
         document.getElementById('quizSubject').innerText = `Subject: ${subject}`;
+        document.getElementById('timer').innerText = `Time: ${formatTime(timeLeft)}`;
 
         // Fetch questions for the selected subject
         database.ref('quizzes').once('value').then(snapshot => {
@@ -188,49 +189,54 @@
 
             // Shuffle and select questions
             selectedQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, numQuestions);
+            displayQuestion();
+            startTimer();
+        });
 
-            // Create quiz form
+        function displayQuestion() {
             const quizForm = document.getElementById('quizForm');
-            selectedQuestions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.classList.add('question-container');
-                questionDiv.innerHTML = `
-                    <h3>Question ${index + 1}: ${q.question}</h3>
+            quizForm.innerHTML = `
+                <div class="question-container">
+                    <h3>Question ${currentQuestionIndex + 1}: ${selectedQuestions[currentQuestionIndex].question}</h3>
                     <div class="options">
-                        ${q.options.map((opt, i) => `
+                        ${selectedQuestions[currentQuestionIndex].options.map((opt, i) => `
                             <label>
-                                <input type="radio" name="question${index}" value="${i + 1}"> ${opt}
+                                <input type="radio" name="question" value="${i + 1}"> ${opt}
                             </label>
                         `).join('')}
                     </div>
-                `;
-                quizForm.appendChild(questionDiv);
-            });
+                </div>
+            `;
 
-            document.getElementById('submitBtn').onclick = function(event) {
-                event.preventDefault();
-                userAnswers = getUserAnswers(selectedQuestions);
-                const score = calculateResults(selectedQuestions, userAnswers);
-                showResults(selectedQuestions, userAnswers, score);
-            };
-        });
-
-        function getUserAnswers(questions) {
-            return questions.map((_, index) => {
-                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
-                return selectedOption ? parseInt(selectedOption.value) : null;
-            });
+            // Show/hide buttons
+            document.getElementById('nextBtn').style.display = currentQuestionIndex < numQuestions - 1 ? 'inline' : 'none';
+            document.getElementById('submitBtn').style.display = currentQuestionIndex === numQuestions - 1 ? 'inline' : 'none';
         }
 
-        function calculateResults(questions, userAnswers) {
-            return questions.reduce((score, q, index) => {
-                return score + (userAnswers[index] === q.answer ? 1 : 0);
-            }, 0);
+        document.getElementById('nextBtn').onclick = function() {
+            userAnswers[currentQuestionIndex] = getUserAnswer();
+            currentQuestionIndex++;
+            if (currentQuestionIndex < numQuestions) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        document.getElementById('submitBtn').onclick = function() {
+            userAnswers[currentQuestionIndex] = getUserAnswer();
+            showResults();
+        };
+
+        function getUserAnswer() {
+            const selectedOption = document.querySelector(`input[name="question"]:checked`);
+            return selectedOption ? parseInt(selectedOption.value) : null;
         }
 
-        function showResults(questions, userAnswers, score) {
-            const total = questions.length;
-            const correct = questions.filter((q, index) => userAnswers[index] === q.answer).length;
+        function showResults() {
+            clearInterval(timerInterval); // Stop the timer
+            const total = selectedQuestions.length;
+            const correct = selectedQuestions.filter((q, index) => userAnswers[index] === q.answer).length;
             const incorrect = total - correct;
             const missed = userAnswers.filter(answer => answer === null).length;
             const percentage = ((correct / total) * 100).toFixed(2);
@@ -240,18 +246,18 @@
                 <p>Correct: <span class="correct">${correct}</span></p>
                 <p>Incorrect: <span class="incorrect">${incorrect}</span></p>
                 <p>Missed: ${missed}</p>
-                <p>Total Score: ${score} out of ${total} (${percentage}%)</p>
+                <p>Total Score: ${correct} out of ${total} (${percentage}%)</p>
             `;
 
             // Show chart
             displayChart(correct, incorrect, missed);
 
             // Save quiz results to Firebase
-            saveQuiz(questions, userAnswers, score);
+            saveQuiz(selectedQuestions, userAnswers, correct);
 
-            // Hide questions and show results
+            // Show results
             document.getElementById('quizForm').style.display = 'none';
-            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('result').style.display = 'block';
             document.getElementById('viewDetailBtn').style.display = 'inline'; // Show the View Details button
         }
@@ -298,7 +304,7 @@
             const date = new Date();
             const dateString = date.toISOString().split('T')[0];
             const timeStamp = date.getTime();
-            examID = `${dateString}-quiz-${timeStamp}`;
+            const examID = `${dateString}-quiz-${timeStamp}`;
 
             const examData = {
                 examID,
@@ -328,6 +334,24 @@
         document.getElementById('viewDetailBtn').onclick = function() {
             window.location.href = `detail.html?examID=${examID}`;
         };
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showResults();
+                } else {
+                    timeLeft--;
+                    document.getElementById('time').innerText = formatTime(timeLeft);
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>

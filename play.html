@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5; /* Light gray background */
+            background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -26,14 +26,14 @@
         }
 
         .quiz-content {
-            background-color: #ffffff; /* White background */
+            background-color: #ffffff;
             padding: 20px;
             width: 100%;
             max-width: 600px;
         }
 
         .question {
-            margin-bottom: 15px; /* Space between questions */
+            margin-bottom: 15px;
         }
 
         label {
@@ -65,7 +65,7 @@
         .result {
             margin-top: 20px;
             padding: 20px;
-            background-color: #ffffff; /* White background for results */
+            background-color: #ffffff;
             width: 100%;
             max-width: 600px;
             display: none;
@@ -227,11 +227,14 @@
             // Show chart
             displayChart(correct, incorrect, missed);
 
+            // Save quiz results to Firebase
+            saveQuiz(questions, userAnswers, score);
+
             // Hide questions and show results
             document.getElementById('quizForm').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('result').style.display = 'block';
-            document.getElementById('viewDetailBtn').style.display = 'inline'; // Show the View Details button
+            document.getElementById('viewDetailBtn').style.display = 'inline';
         }
 
         function displayChart(correct, incorrect, missed) {
@@ -256,6 +259,44 @@
                     }
                 }
             });
+        }
+
+        function saveQuiz(questions, userAnswers, score) {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("User not authenticated.");
+                return;
+            }
+
+            const date = new Date();
+            const dateString = date.toISOString().split('T')[0];
+            const timeStamp = date.getTime();
+            examID = `${dateString}-quiz-${timeStamp}`;
+
+            const examData = {
+                examID,
+                subject,
+                questions: questions.map((q, index) => ({
+                    question: q.question,
+                    userAnswer: userAnswers[index],
+                    correctAnswer: q.answer
+                })),
+                score,
+                date: dateString,
+                userId: user.uid,
+            };
+
+            database.ref('quizResults/' + examID).set(examData)
+                .then(() => {
+                    console.log("Quiz results saved successfully.");
+                })
+                .catch((error) => {
+                    console.error("Error saving quiz results: ", error);
+                });
+
+            document.getElementById('viewDetailBtn').onclick = function() {
+                window.location.href = `quizDetails.html?examID=${examID}`;
+            };
         }
     </script>
 </body>

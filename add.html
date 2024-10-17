@@ -3,104 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Quiz</title>
+    <title>Add Quiz Question</title>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
+            font-family: Arial, sans-serif;
             padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #f4f4f4;
+            margin: 0;
         }
         h1 {
             text-align: center;
-            color: #007BFF;
+            color: #333;
             margin-bottom: 20px;
         }
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: border-color 0.3s;
+        .form-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: none;
         }
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        textarea:focus {
-            border-color: #007BFF;
-        }
-        textarea {
-            resize: vertical;
-        }
-        button {
-            background: #4A90E2;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-            width: 100%;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #357ABD;
-        }
-        .status {
-            text-align: center;
-            margin: 10px 0;
+        label {
+            display: block;
+            margin: 10px 0 5px;
             font-weight: bold;
         }
-        .status.success {
-            color: #28a745;
-        }
-        .status.error {
-            color: #dc3545;
-        }
-        .loading {
-            display: none;
-        }
-        .question-set {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
+        input, textarea, select {
+            width: 100%;
             padding: 10px;
-            border-radius: 5px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            box-shadow: none;
+            border: none;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
         }
-        .remove-btn {
-            background: #dc3545;
-            margin: 5px 0;
+        input:focus, textarea:focus, select:focus {
+            background-color: #e0e0e0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+        .menu-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            z-index: 1;
+        }
+        .menu-content a, .menu-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+        }
+        .menu-content a:hover, .menu-content button:hover {
+            background-color: #f1f1f1;
+        }
+        .footer {
+            text-align: center;
+            color: #333;
+            padding: 10px;
+            margin-top: auto;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Add Quiz</h1>
-        <div id="questionContainer"></div>
-        <button onclick="addQuestionSet()">Add Question Set</button>
-        <button onclick="addQuiz()">Add Quiz</button>
-        <div id="status" class="status"></div>
+    <div class="menu">
+        <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
+        <div class="menu-content" id="menuContent">
+            <a href="https://t.me/neetpw01" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+            <a href="path/to/apk" download><i class="fas fa-download"></i> Download APK</a>
+            <button onclick="shareLink()"><i class="fas fa-share"></i> Share</button>
+        </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <h1>Add Quiz Question</h1>
+    <div class="form-container">
+        <div id="userInfo"></div>
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" placeholder="Enter subject name" required>
+
+        <label for="question">Question</label>
+        <textarea id="question" rows="4" placeholder="Enter the question" required></textarea>
+
+        <label for="options">Options (comma separated)</label>
+        <input type="text" id="options" placeholder="Option 1, Option 2, Option 3, Option 4" required>
+
+        <label for="correctOption">Correct Option (1-4)</label>
+        <select id="correctOption" required>
+            <option value="" disabled selected>Select correct option</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+
+        <label for="explanation">Explanation</label>
+        <textarea id="explanation" rows="4" placeholder="Enter explanation (optional)"></textarea>
+
+        <button id="submitBtn">Add Question</button>
+    </div>
+
+    <footer class="footer" id="footer"></footer>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
@@ -113,104 +153,65 @@
             measurementId: "G-QMZK5Y6769"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
 
-        function addQuestionSet() {
-            const questionSet = document.createElement('div');
-            questionSet.className = 'question-set';
-            questionSet.innerHTML = `
-                <input type="text" placeholder="Subject Name" required aria-label="Subject Name">
-                <textarea placeholder="Enter your question" required aria-label="Quiz Question"></textarea>
-                <input type="text" placeholder="Option 1" required aria-label="Option 1">
-                <input type="text" placeholder="Option 2" required aria-label="Option 2">
-                <input type="text" placeholder="Option 3" required aria-label="Option 3">
-                <input type="text" placeholder="Option 4" required aria-label="Option 4">
-                <input type="number" placeholder="Correct Option (1-4)" min="1" max="4" required aria-label="Correct Option">
-                <textarea placeholder="Enter explanation for the correct answer" required aria-label="Quiz Explanation"></textarea>
-                <button class="remove-btn" onclick="removeQuestionSet(this)">Remove Question Set</button>
-            `;
-            document.getElementById('questionContainer').appendChild(questionSet);
-        }
-
-        function removeQuestionSet(button) {
-            button.parentElement.remove();
-        }
-
-        function addQuiz() {
-            const questionSets = document.querySelectorAll('.question-set');
-            let allValid = true;
-            const quizzes = [];
-
-            questionSets.forEach(set => {
-                const subjectName = set.querySelector('input[type="text"]').value.trim();
-                const question = set.querySelector('textarea').value.trim();
-                const options = [
-                    set.querySelectorAll('input[type="text"]')[0].value.trim(),
-                    set.querySelectorAll('input[type="text"]')[1].value.trim(),
-                    set.querySelectorAll('input[type="text"]')[2].value.trim(),
-                    set.querySelectorAll('input[type="text"]')[3].value.trim(),
-                ];
-                const correctOption = set.querySelector('input[type="number"]').value;
-                const explanation = set.querySelectorAll('textarea')[1].value.trim();
-                const date = new Date().toLocaleString();
-
-                if (!subjectName || !question || options.some(opt => opt === '') || !correctOption || !explanation) {
-                    allValid = false;
-                }
-                if (correctOption < 1 || correctOption > 4) {
-                    allValid = false;
-                }
-
-                if (allValid) {
-                    quizzes.push({ subjectName, question, options, correctOption, explanation, date });
-                }
-            });
-
-            if (!allValid) {
-                showStatus('Please fill out all fields correctly.', false);
-                return;
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('userInfo').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
+                document.getElementById('footer').innerHTML = `Logged in`;
+            } else {
+                window.location.href = 'login.html';
             }
+        });
 
-            showLoading(true);
+        document.getElementById('submitBtn').onclick = function() {
+            const subject = document.getElementById('subject').value;
+            const question = document.getElementById('question').value;
+            const options = document.getElementById('options').value.split(',').map(opt => opt.trim());
+            const correctOption = parseInt(document.getElementById('correctOption').value);
+            const explanation = document.getElementById('explanation').value;
+            const dateAdded = new Date().toISOString();
 
-            const promises = quizzes.map(quizData => {
-                return database.ref('quizzes').push(quizData);
-            });
+            const quizData = {
+                subjectName: subject,
+                question: question,
+                options: options,
+                correctOption: correctOption,
+                explanation: explanation,
+                dateAdded: dateAdded
+            };
 
-            Promise.all(promises)
+            // Push to Firebase
+            database.ref('quizzes').push(quizData)
                 .then(() => {
-                    showStatus('Quizzes added successfully!', true);
-                    clearFields();
+                    alert('Quiz question added successfully!');
+                    // Clear form fields
+                    document.getElementById('subject').value = '';
+                    document.getElementById('question').value = '';
+                    document.getElementById('options').value = '';
+                    document.getElementById('correctOption').value = '';
+                    document.getElementById('explanation').value = '';
                 })
                 .catch(error => {
-                    showStatus(`Error: ${error.message}`, false);
-                })
-                .finally(() => {
-                    showLoading(false);
+                    console.error('Error adding quiz question:', error);
                 });
+        };
+
+        function toggleMenu() {
+            const menuContent = document.getElementById('menuContent');
+            menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
         }
 
-        function clearFields() {
-            document.getElementById('questionContainer').innerHTML = '';
-        }
-
-        function showStatus(message, isSuccess) {
-            const statusElement = document.getElementById('status');
-            statusElement.innerText = message;
-            statusElement.classList.toggle('success', isSuccess);
-            statusElement.classList.toggle('error', !isSuccess);
-            setTimeout(() => { statusElement.innerText = ''; }, 3000);
-        }
-
-        function showLoading(isLoading) {
-            const buttons = document.querySelectorAll('button');
-            buttons.forEach(btn => {
-                if (btn.innerText !== 'Add Question Set') {
-                    btn.disabled = isLoading;
-                    btn.innerText = isLoading ? 'Adding...' : 'Add Quiz';
-                }
-            });
+        function shareLink() {
+            const shareText = 'Check out my quiz results!';
+            navigator.share({
+                title: 'Quiz Results',
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
         }
     </script>
 </body>

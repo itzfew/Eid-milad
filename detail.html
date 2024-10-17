@@ -71,6 +71,7 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px; /* Space between chart and footer */
         }
 
         .menu {
@@ -93,6 +94,7 @@
             min-width: 200px;
             box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
             z-index: 1;
+            border-radius: 5px;
         }
 
         .menu-content a, .menu-content button {
@@ -111,13 +113,28 @@
         }
 
         footer {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
             text-align: center;
             color: #333;
             padding: 10px;
+            margin-top: auto; /* Push footer to the bottom */
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .question-detail {
+                padding: 10px;
+            }
+
+            .explanation {
+                font-size: 0.9em;
+            }
+
+            .menu-icon {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -239,9 +256,9 @@
         }
 
         function shareLink() {
-            const shareText = "Check out this quiz app!";
+            const shareText = 'Check out my exam results!';
             navigator.share({
-                title: 'Quiz App',
+                title: 'Exam Results',
                 text: shareText,
                 url: window.location.href
             }).catch(console.error);

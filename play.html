@@ -30,31 +30,17 @@
             padding: 20px;
             width: 100%;
             max-width: 600px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
         }
 
         .question {
             margin-bottom: 15px; /* Space between questions */
         }
 
-        .separator {
-            border-top: 1px solid #ddd; /* Light gray separator line */
-            margin: 10px 0; /* Margin around the separator */
-        }
-
         label {
             display: block;
             margin: 10px 0;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+            padding: 10px;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        label:hover {
-            background-color: #f0f0f0;
         }
 
         input[type="radio"] {
@@ -64,13 +50,12 @@
         button {
             background-color: #007bff;
             color: white;
-            padding: 12px 25px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
-            transition: background-color 0.3s;
         }
 
         button:hover {
@@ -80,13 +65,10 @@
         .result {
             margin-top: 20px;
             padding: 20px;
-            border-radius: 10px;
             background-color: #ffffff; /* White background for results */
             width: 100%;
             max-width: 600px;
-            text-align: left;
             display: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
         }
 
         .chart-container {
@@ -202,7 +184,6 @@
                                 </label>
                             `).join('')}
                         </div>
-                        <div class="separator"></div> <!-- Separator line -->
                     </div>
                 `;
             });
@@ -246,9 +227,6 @@
             // Show chart
             displayChart(correct, incorrect, missed);
 
-            // Save quiz results to Firebase
-            saveQuiz(questions, userAnswers, score);
-
             // Hide questions and show results
             document.getElementById('quizForm').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'none';
@@ -278,10 +256,6 @@
                     }
                 }
             });
-        }
-
-        function saveQuiz(questions, userAnswers, score) {
-            // Add Firebase saving logic here if needed
         }
     </script>
 </body>

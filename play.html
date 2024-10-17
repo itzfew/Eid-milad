@@ -13,7 +13,7 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
         }
 
         h1 {
@@ -22,16 +22,16 @@
         }
 
         .question {
-            background-color: #ffffff;
-            border-radius: 5px;
+            margin: 20px 0;
             padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         label {
             display: block;
-            margin: 5px 0;
+            margin: 10px 0;
             cursor: pointer;
         }
 
@@ -40,7 +40,7 @@
             color: white;
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
@@ -54,20 +54,24 @@
         .result {
             display: none;
             margin-top: 20px;
-            background-color: #ffffff;
-            padding: 15px;
+            padding: 20px;
+            background-color: #fff;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .correct {
             color: green;
-            font-weight: bold;
         }
 
         .incorrect {
             color: red;
-            font-weight: bold;
+        }
+
+        .separator {
+            height: 2px;
+            background-color: #007bff;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -134,6 +138,7 @@
                             </label>
                         `).join('')}
                     </div>
+                    <div class="separator"></div>
                 `;
             });
 

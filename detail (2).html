@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Detail</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff; /* Set background to white */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em; /* Responsive font size */
+        }
+
+        .question-detail {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #fff;
+            width: 100%;
+            max-width: 600px; /* Limit width for readability */
+        }
+
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+
+        .explanation {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 600px; /* Limit width for the chart */
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em; /* Adjust font size for smaller screens */
+            }
+
+            .question-detail {
+                padding: 10px; /* Less padding for smaller screens */
+            }
+
+            .explanation {
+                font-size: 0.9em; /* Smaller font size for explanations */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Exam Details</h1>
+    <div id="examDetails"></div>
+    <div class="chart-container">
+        <canvas id="resultChart"></canvas>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWtVfoGIWQoRVe36v6g6S3slTRRYUAgk",
+            authDomain: "quizes-3028d.firebaseapp.com",
+            databaseURL: "https://quizes-3028d-default-rtdb.firebaseio.com",
+            projectId: "quizes-3028d",
+            storageBucket: "quizes-3028d.appspot.com",
+            messagingSenderId: "624591251031",
+            appId: "1:624591251031:web:e093472f24fdeb29fc2512",
+            measurementId: "G-QMZK5Y6769"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const examID = urlParams.get('examID');
+                fetchExamDetails(user.uid, examID);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function fetchExamDetails(userId, examID) {
+            const examDetailsDiv = document.getElementById('examDetails');
+            database.ref(`users/${userId}/exams/${examID}`).once('value').then(snapshot => {
+                const examData = snapshot.val();
+                if (examData) {
+                    const correctAnswers = examData.questions.filter((q, index) => examData.userAnswers[index] === q.correctAnswer).length;
+                    const incorrectAnswers = examData.questions.filter((q, index) => examData.userAnswers[index] !== q.correctAnswer && examData.userAnswers[index] !== null).length;
+                    const missedAnswers = examData.questions.length - correctAnswers - incorrectAnswers;
+
+                    examDetailsDiv.innerHTML = `
+                        <h2>Subject: ${examData.subject}</h2>
+                        <p>Date: ${examData.date}</p>
+                        <p>Score: ${examData.score}</p>
+                        <p>Email: ${examData.email}</p>
+                        <h3>Your Answers:</h3>
+                        ${examData.questions.map((q, index) => `
+                            <div class="question-detail">
+                                <p><strong>Question ${index + 1}:</strong> ${q.question}</p>
+                                <p class="${examData.userAnswers[index] === q.correctAnswer ? 'correct' : 'incorrect'}">
+                                    Your answer: ${examData.userAnswers[index] !== null ? q.options[examData.userAnswers[index] - 1] : 'No answer'}
+                                </p>
+                                <p class="correct">Correct answer: ${q.options[q.correctAnswer - 1]}</p>
+                                <p class="explanation">Explanation: ${q.explanation}</p>
+                            </div>
+                        `).join('')}
+                    `;
+
+                    // Display chart
+                    displayChart(correctAnswers, incorrectAnswers, missedAnswers);
+                } else {
+                    examDetailsDiv.innerHTML = `<p>No details found for this exam.</p>`;
+                }
+            });
+        }
+
+        function displayChart(correct, incorrect, missed) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct', 'Incorrect', 'Missed'],
+                    datasets: [{
+                        label: 'Results',
+                        data: [correct, incorrect, missed],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.7)',  // green for correct
+                            'rgba(220, 53, 69, 0.7)',  // red for incorrect
+                            'rgba(255, 193, 7, 0.7)'   // yellow for missed
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

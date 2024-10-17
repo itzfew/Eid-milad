@@ -8,25 +8,36 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 20px;
+        }
+
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
 
         .question {
             margin: 20px 0;
             padding: 15px;
-            
-            border-radius: 0px;
-        
+            border-bottom: 1px solid #ddd;
         }
 
         label {
@@ -55,8 +66,9 @@
             display: none;
             margin-top: 20px;
             padding: 20px;
-           
-            
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
         }
 
         .correct {
@@ -67,6 +79,51 @@
             color: red;
         }
 
+        .menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .menu-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        .menu-content a, .menu-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .menu-content a:hover, .menu-content button:hover {
+            background-color: #f1f1f1;
+        }
+
+        footer {
+            text-align: center;
+            color: #333;
+            padding: 10px;
+            margin-top: auto;
+        }
+
         .separator {
             height: 2px;
             background-color: #007bff;
@@ -75,14 +132,27 @@
     </style>
 </head>
 <body>
-    <h1 id="quizSubject"></h1>
-    <form id="quizForm"></form>
-    <button id="submitBtn">Submit Answers</button>
-    <div id="result" class="result">
-        <h2>Your Results</h2>
-        <p id="resultSummary"></p>
-        <button id="viewDetailBtn" style="display: none;">View Details</button>
+    <div class="menu">
+        <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
+        <div class="menu-content" id="menuContent">
+            <a href="https://t.me/neetpw01" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+            <a href="path/to/apk" download><i class="fas fa-download"></i> Download APK</a>
+            <button onclick="shareLink()"><i class="fas fa-share"></i> Share</button>
+        </div>
     </div>
+
+    <h1 id="quizSubject"></h1>
+    <div class="quiz-container">
+        <form id="quizForm"></form>
+        <button id="submitBtn">Submit Answers</button>
+        <div id="result" class="result">
+            <h2>Your Results</h2>
+            <p id="resultSummary"></p>
+            <button id="viewDetailBtn" style="display: none;">View Details</button>
+        </div>
+    </div>
+
+    <footer id="footer"></footer>
 
     <script>
         const firebaseConfig = {
@@ -137,7 +207,6 @@
                             </label>
                         `).join('')}
                     </div>
-                    <div class="separator"></div>
                 `;
             });
 
@@ -225,6 +294,24 @@
         document.getElementById('viewDetailBtn').onclick = function() {
             window.location.href = `detail.html?examID=${examID}`;
         };
+
+        function toggleMenu() {
+            const menuContent = document.getElementById('menuContent');
+            menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function shareLink() {
+            const shareText = 'Check out my quiz results!';
+            navigator.share({
+                title: 'Quiz Results',
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
+        }
+
+        document.getElementById('footer').innerHTML = `
+            <p>&copy; 2024 Quiz App | <a href="https://yourprivacyurl.com" target="_blank">Privacy Policy</a></p>
+        `;
     </script>
 </body>
 </html>

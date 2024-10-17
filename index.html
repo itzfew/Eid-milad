@@ -15,21 +15,13 @@
             align-items: center;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
+            position: relative;
         }
 
         h1 {
             color: #333;
             margin-bottom: 20px;
-        }
-
-        .profile {
-            background-color: #e2e2e2;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
         }
 
         label {
@@ -76,11 +68,13 @@
             border-radius: 5px;
             padding: 10px;
             background-color: #f9f9f9;
-            max-height: 200px;
-            overflow-y: auto;
+            max-height: 200px; /* Limit the height */
+            overflow-y: auto; /* Enable scrolling */
             text-align: left;
             width: 100%;
             max-width: 500px;
+            display: flex;
+            flex-direction: column;
         }
 
         .exam-item {
@@ -110,21 +104,94 @@
         .exam-item button:hover {
             background-color: #0056b3;
         }
+
+        .menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .menu-icon {
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .menu-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .menu-content a, .menu-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .menu-content a:hover, .menu-content button:hover {
+            background-color: #f1f1f1;
+        }
+
+        .share-button {
+            background-color: #007bff;
+            border-radius: 5px;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            width: calc(100% - 16px);
+            border: none;
+        }
+
+        .share-button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #333;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="profile" id="profile"></div>
     <h1>Select Quiz</h1>
+    
     <label for="subject">Select Subject:</label>
     <select id="subject"></select>
 
     <label for="numQuestions">Number of Questions:</label>
     <input type="number" id="numQuestions" min="1" max="10" value="5">
 
-    <button id="generateBtn">Generate Quiz</button>
+    <button id="generateBtn"><i class="fas fa-clipboard-list"></i> Generate Quiz</button>
 
     <h2>Your Attempted Exams</h2>
     <div class="exam-list" id="examList"></div>
+
+    <div class="menu">
+        <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
+        <div class="menu-content" id="menuContent">
+            <a href="https://t.me/neetpw01" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+            <a href="path/to/apk" download><i class="fas fa-download"></i> Download APK</a>
+            <button class="share-button" onclick="shareLink()"><i class="fas fa-share"></i> Share</button>
+        </div>
+    </div>
+
+    <footer id="footer"></footer>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
@@ -147,7 +214,7 @@
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('profile').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
+                document.getElementById('footer').innerHTML = `Logged in as: <strong>${user.email}</strong>`;
                 fetchAttemptedExams(user.uid);
                 fetchSubjects();
             } else {
@@ -177,13 +244,20 @@
         function fetchAttemptedExams(userId) {
             const examList = document.getElementById('examList');
             database.ref(`users/${userId}/exams`).once('value').then(snapshot => {
+                let examCount = 0; // To track the number of exams added
                 snapshot.forEach(childSnapshot => {
                     const { examID, date, score } = childSnapshot.val();
                     const examItem = document.createElement('div');
                     examItem.className = 'exam-item';
-                    examItem.innerHTML = `<a href="detail.html?examID=${examID}">Exam ID: ${examID} | Date: ${date} | Score: ${score}</a> <button onclick="viewResult('${examID}')">View Result</button>`;
+                    examItem.innerHTML = `<a href="detail.html?examID=${examID}"><i class="fas fa-file-alt"></i> Exam ID: ${examID} | Date: ${date} | Score: ${score}</a> <button onclick="viewResult('${examID}')"><i class="fas fa-eye"></i> View Result</button>`;
                     examList.appendChild(examItem);
+                    examCount++;
                 });
+
+                // If less than 3 exams, set the height to fit all items
+                if (examCount < 3) {
+                    examList.style.maxHeight = 'none';
+                }
             });
         }
 
@@ -196,6 +270,20 @@
             const numQuestions = document.getElementById('numQuestions').value;
             window.location.href = `play.html?subject=${subject}&numQuestions=${numQuestions}`;
         };
+
+        function toggleMenu() {
+            const menuContent = document.getElementById('menuContent');
+            menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function shareLink() {
+            const shareText = "Check out this quiz app!";
+            navigator.share({
+                title: 'Quiz App',
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
+        }
     </script>
 </body>
 </html>
